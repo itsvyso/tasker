@@ -26,7 +26,7 @@ export const ViewNavigationTabs: React.FC = () => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80 mb-6 select-none">
       {/* Navigation Pills */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0B0F1C] border border-slate-800/80 overflow-x-auto max-w-full">
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0E0E14] border border-white/[0.08] overflow-x-auto max-w-full">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeView === tab.id
@@ -36,7 +36,7 @@ export const ViewNavigationTabs: React.FC = () => {
               onClick={() => setActiveView(tab.id)}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                  ? 'bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30 border border-purple-400/20'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               }`}
             >
@@ -45,7 +45,7 @@ export const ViewNavigationTabs: React.FC = () => {
               {tab.id === 'table' && (
                 <span
                   className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
-                    isActive ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-800 text-slate-400'
+                    isActive ? 'bg-purple-900/60 text-purple-200 border border-purple-400/20' : 'bg-slate-800 text-slate-400'
                   }`}
                 >
                   {projectTasks.length}
@@ -60,11 +60,11 @@ export const ViewNavigationTabs: React.FC = () => {
       <div className="flex items-center gap-2 self-end sm:self-auto">
         <button
           onClick={() => openCreateTaskModal()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold shadow-sm transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600/20 to-violet-600/20 hover:from-purple-600/30 hover:to-violet-600/30 text-purple-300 border border-purple-500/30 hover:border-purple-500/50 text-xs font-semibold shadow-sm transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>New Task</span>
-          <kbd className="hidden md:inline text-[9px] font-mono px-1 py-0.2 bg-indigo-900/50 rounded border border-indigo-500/20">
+          <kbd className="hidden md:inline text-[9px] font-mono px-1 py-0.2 bg-purple-950/60 text-purple-300 rounded border border-purple-500/30">
             C
           </kbd>
         </button>

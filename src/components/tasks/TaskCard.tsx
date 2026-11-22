@@ -34,11 +34,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       draggable
       onDragStart={handleDragStart}
       onClick={() => setSelectedTaskId(task.id)}
-      className="group relative bg-[#0E1424]/90 hover:bg-[#131B30] border border-slate-800/80 hover:border-indigo-500/40 rounded-xl p-3.5 shadow-md shadow-black/40 hover:shadow-indigo-950/20 transition-all duration-200 cursor-pointer select-none"
+      className="group relative bg-[#101016] hover:bg-[#151520] border border-white/[0.07] hover:border-purple-500/50 rounded-xl p-3.5 shadow-md shadow-black/50 hover:shadow-purple-950/30 transition-all duration-200 cursor-pointer select-none"
     >
       {/* Top row: Code + Priority */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-mono font-medium text-slate-400 group-hover:text-indigo-300 transition-colors">
+        <span className="text-[11px] font-mono font-medium text-slate-400 group-hover:text-purple-300 transition-colors">
           {task.taskCode}
         </span>
         <div className="flex items-center gap-1.5">
@@ -96,7 +96,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
               className={`h-full transition-all duration-300 ${
                 completedSubtasks === totalSubtasks
                   ? 'bg-emerald-400'
-                  : 'bg-gradient-to-r from-indigo-500 to-cyan-400'
+                  : 'bg-gradient-to-r from-purple-500 via-violet-500 to-fuchsia-400'
               }`}
               style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
             />

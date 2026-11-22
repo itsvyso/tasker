@@ -37,12 +37,19 @@ const MainContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#090D17] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#08080B] text-slate-100 flex flex-col font-sans relative selection:bg-purple-500/30 selection:text-purple-200">
+      {/* Ambient background violet gradient glow */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-36 left-1/2 -translate-x-1/2 w-[950px] h-[450px] bg-gradient-to-b from-purple-600/15 via-violet-600/10 to-transparent blur-[130px] rounded-full" />
+        <div className="absolute top-1/3 -right-40 w-[550px] h-[550px] bg-fuchsia-600/5 blur-[150px] rounded-full" />
+        <div className="absolute bottom-10 -left-40 w-[500px] h-[500px] bg-violet-600/5 blur-[140px] rounded-full" />
+      </div>
+
       <Sidebar />
       <TopNavbar />
 
       <main
-        className={`flex-1 pt-20 px-3 sm:px-6 pb-12 transition-all duration-300 ${
+        className={`flex-1 pt-20 px-3 sm:px-6 pb-12 transition-all duration-300 relative z-10 ${
           isSidebarCollapsed ? 'ml-16' : 'ml-16 sm:ml-64'
         }`}
       >

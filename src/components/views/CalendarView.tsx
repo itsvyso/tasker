@@ -122,7 +122,7 @@ export const CalendarView: React.FC = () => {
         </div>
 
         {/* Days cells */}
-        <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-800/60 bg-[#0A0E1A]">
+        <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-800/60 bg-[#0A0A0E]">
           {days.map(({ day, isCurrentMonth, dateStr }, index) => {
             const dayTasks = getTasksForDate(dateStr)
             const isToday = dateStr === todayDateStr
@@ -131,7 +131,7 @@ export const CalendarView: React.FC = () => {
               <div
                 key={index}
                 className={`group min-h-[110px] p-2 flex flex-col transition-colors relative ${
-                  isCurrentMonth ? 'bg-[#0E1424]/90' : 'bg-[#0A0E1A]/40 opacity-40'
+                  isCurrentMonth ? 'bg-[#0E0E14]' : 'bg-[#0A0A0E]/40 opacity-40'
                 } hover:bg-slate-800/40`}
               >
                 {/* Cell Header */}
@@ -139,7 +139,7 @@ export const CalendarView: React.FC = () => {
                   <span
                     className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${
                       isToday
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/50'
+                        ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-md shadow-purple-600/50'
                         : isCurrentMonth
                         ? 'text-slate-300'
                         : 'text-slate-400'
@@ -157,7 +157,7 @@ export const CalendarView: React.FC = () => {
                     <button
                       onClick={() => openCreateTaskModal({ dueDate: dateStr })}
                       title={`Add task for ${dateStr}`}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-400 hover:text-indigo-300 hover:bg-indigo-600/20 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-400 hover:text-purple-300 hover:bg-purple-600/20 transition-all"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -175,7 +175,7 @@ export const CalendarView: React.FC = () => {
                         className={`px-2 py-1 rounded-md text-[11px] font-medium border text-slate-200 cursor-pointer truncate transition-all flex items-center gap-1.5 shadow-sm ${
                           isDone
                             ? 'bg-slate-900/60 border-slate-800 line-through text-slate-400 opacity-70'
-                            : 'bg-[#131B32] hover:bg-indigo-600/30 border-slate-700/60 hover:border-indigo-500/50'
+                            : 'bg-[#14141E] hover:bg-purple-600/25 border-white/[0.08] hover:border-purple-500/50'
                         }`}
                         title={`${task.taskCode}: ${task.title} (${task.status})`}
                       >
@@ -189,7 +189,7 @@ export const CalendarView: React.FC = () => {
                                 : task.priority === 'high'
                                 ? 'bg-amber-400'
                                 : task.priority === 'medium'
-                                ? 'bg-indigo-400'
+                                ? 'bg-purple-400'
                                 : 'bg-emerald-400'
                             }`}
                           />

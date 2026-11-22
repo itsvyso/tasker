@@ -49,23 +49,23 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed top-0 bottom-0 left-0 z-30 flex flex-col bg-[#0A0E1A] border-r border-slate-800/80 transition-all duration-300 select-none ${
+      className={`fixed top-0 bottom-0 left-0 z-30 flex flex-col bg-[#09090D] border-r border-white/[0.08] transition-all duration-300 select-none ${
         isSidebarCollapsed ? 'w-16' : 'w-16 sm:w-64'
       }`}
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/60 bg-[#080B14]">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.08] bg-[#07070A]">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-600/30 flex items-center justify-center shrink-0">
-            <div className="w-full h-full bg-[#090D17] rounded-[10px] flex items-center justify-center">
-              <Zap className="w-5 h-5 text-indigo-400 fill-indigo-400/20" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-violet-600 to-fuchsia-500 p-0.5 shadow-lg shadow-purple-600/30 flex items-center justify-center shrink-0">
+            <div className="w-full h-full bg-[#09090D] rounded-[10px] flex items-center justify-center">
+              <Zap className="w-5 h-5 text-purple-400 fill-purple-400/20" />
             </div>
           </div>
           {!isSidebarCollapsed && (
             <div className="hidden sm:flex flex-col min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-base tracking-tight text-white">Taske</span>
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold tracking-wider uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
                   PRO
                 </span>
               </div>
@@ -102,12 +102,12 @@ export const Sidebar: React.FC = () => {
                   title={isSidebarCollapsed ? `${item.label} (${item.shortcut})` : undefined}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-indigo-600/25 to-indigo-500/10 text-indigo-300 border border-indigo-500/30 shadow-sm'
+                      ? 'bg-gradient-to-r from-purple-600/25 via-violet-600/15 to-transparent text-purple-200 border-l-2 border-purple-500 shadow-sm shadow-purple-950/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-purple-400' : 'text-slate-400'}`} />
                     {!isSidebarCollapsed && <span className="hidden sm:inline truncate">{item.label}</span>}
                   </div>
                   {!isSidebarCollapsed && (
@@ -132,7 +132,7 @@ export const Sidebar: React.FC = () => {
                 <button
                   onClick={() => setIsCreateProjectModalOpen(true)}
                   title="Create New Project"
-                  className="p-1 text-slate-400 hover:text-indigo-300 hover:bg-indigo-600/20 rounded transition-colors"
+                  className="p-1 text-slate-400 hover:text-purple-300 hover:bg-purple-600/20 rounded transition-colors"
                 >
                   <FolderPlus className="w-3.5 h-3.5" />
                 </button>
@@ -189,7 +189,7 @@ export const Sidebar: React.FC = () => {
               {filters.assigneeId !== 'all' && (
                 <button
                   onClick={() => setFilters({ assigneeId: 'all' })}
-                  className="text-[10px] text-indigo-400 hover:underline"
+                  className="text-[10px] text-purple-400 hover:underline"
                 >
                   Clear filter
                 </button>
@@ -207,7 +207,7 @@ export const Sidebar: React.FC = () => {
                     title={`Click to filter tasks by ${u.name}`}
                     className={`w-full flex items-center gap-2.5 p-1.5 rounded-lg text-xs text-left transition-colors ${
                       isFiltered
-                        ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
+                        ? 'bg-purple-600/20 text-purple-200 font-semibold border border-purple-500/30'
                         : 'text-slate-300 hover:bg-slate-800/40'
                     }`}
                   >
@@ -225,10 +225,10 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-3 border-t border-slate-800/60 bg-[#080B14] space-y-2">
+      <div className="p-3 border-t border-white/[0.08] bg-[#07070A] space-y-2">
         <button
           onClick={() => openCreateTaskModal()}
-          className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-indigo-600/30 transition-all ${
+          className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-purple-600/30 transition-all ${
             isSidebarCollapsed ? 'p-2' : ''
           }`}
           title="Create New Task (Press 'C')"

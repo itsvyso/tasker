@@ -131,12 +131,12 @@ export const CommandPalette: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/70 backdrop-blur-md transition-all animate-fadeIn">
       <div
-        className="w-full max-w-xl bg-[#0E1424] border border-slate-700/60 rounded-xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col"
+        className="w-full max-w-xl bg-[#0D0D14] border border-slate-700/60 rounded-xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-800 bg-[#121A2F]">
-          <Search className="w-5 h-5 text-indigo-400 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-800 bg-[#101018]">
+          <Search className="w-5 h-5 text-purple-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -177,14 +177,14 @@ export const CommandPalette: React.FC = () => {
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-                    isSelected ? 'bg-indigo-600/20 text-white border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800/40 border border-transparent'
+                    isSelected ? 'bg-gradient-to-r from-purple-600/20 to-violet-600/15 text-white border border-purple-500/35 shadow-sm' : 'text-slate-300 hover:bg-slate-800/40 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                         item.type === 'task'
-                          ? 'bg-indigo-500/15 text-indigo-400'
+                          ? 'bg-indigo-500/15 text-purple-400'
                           : item.type === 'project'
                           ? 'bg-cyan-500/15 text-cyan-400'
                           : 'bg-emerald-500/15 text-emerald-400'
@@ -203,7 +203,7 @@ export const CommandPalette: React.FC = () => {
                   <div className="flex items-center gap-2 shrink-0">
                     {item.type === 'task' && <PriorityBadge priority={item.data.priority} showIcon={false} />}
                     {isSelected && (
-                      <span className="flex items-center gap-1 text-[11px] text-indigo-300">
+                      <span className="flex items-center gap-1 text-[11px] text-purple-300">
                         <CornerDownLeft className="w-3.5 h-3.5" />
                       </span>
                     )}

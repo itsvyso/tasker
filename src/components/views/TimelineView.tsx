@@ -99,7 +99,7 @@ export const TimelineView: React.FC = () => {
           {/* Status indicators */}
           <div className="hidden md:flex items-center gap-3 text-xs text-slate-300">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" />
+              <span className="w-2.5 h-2.5 rounded-sm bg-purple-500" />
               <span>In Progress</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -156,7 +156,7 @@ export const TimelineView: React.FC = () => {
                   <div
                     key={i}
                     className={`flex-1 text-center py-2 px-1 border-r border-slate-800/60 ${
-                      isToday ? 'bg-indigo-950/60 text-indigo-300 font-bold' : 'text-slate-400'
+                      isToday ? 'bg-purple-950/60 text-purple-300 font-bold' : 'text-slate-400'
                     }`}
                   >
                     <div className="text-[10px] uppercase font-mono">{dayName}</div>
@@ -181,7 +181,7 @@ export const TimelineView: React.FC = () => {
                   : task.status === 'in_review'
                   ? 'bg-purple-600/80 border-purple-500 shadow-purple-950/50'
                   : task.status === 'in_progress'
-                  ? 'bg-indigo-600/80 border-indigo-500 shadow-indigo-950/50'
+                  ? 'bg-gradient-to-r from-purple-600 to-violet-600 border-purple-500 shadow-purple-950/50'
                   : 'bg-slate-700/80 border-slate-600 shadow-slate-950/50'
 
               return (

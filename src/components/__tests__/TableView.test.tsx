@@ -92,6 +92,6 @@ describe('TableView Component', () => {
     fireEvent.click(titleHeader)
 
     // Header styling highlights active sort
-    expect(titleHeader).toHaveClass('text-indigo-300')
+    expect(titleHeader).toHaveClass('text-purple-300')
   })
 })

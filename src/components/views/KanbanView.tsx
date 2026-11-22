@@ -52,15 +52,15 @@ export const KanbanView: React.FC = () => {
             onDragOver={(e) => handleDragOver(e, status)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, status)}
-            className={`w-80 shrink-0 flex flex-col bg-[#0B0F1D]/80 rounded-2xl border transition-all duration-200 ${
+            className={`w-80 shrink-0 flex flex-col bg-[#0D0D12]/90 border border-white/[0.08] rounded-2xl border transition-all duration-200 ${
               isOver
-                ? 'border-indigo-500/80 bg-indigo-950/20 shadow-xl shadow-indigo-950/40'
+                ? 'border-purple-500/80 bg-purple-950/20 shadow-xl shadow-purple-950/40'
                 : 'border-slate-800/80'
             }`}
           >
             {/* Column Header */}
             <div
-              className={`p-3.5 border-b border-slate-800/80 flex items-center justify-between border-t-2 rounded-t-2xl ${statusInfo.columnBorder} bg-[#0D1224]`}
+              className={`p-3.5 border-b border-slate-800/80 flex items-center justify-between border-t-2 rounded-t-2xl ${statusInfo.columnBorder} bg-[#101018]`}
             >
               <div className="flex items-center gap-2.5">
                 <span className={`w-2 h-2 rounded-full ${statusInfo.dot}`} />
@@ -87,7 +87,7 @@ export const KanbanView: React.FC = () => {
                 <div
                   className={`h-36 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 text-center transition-colors ${
                     isOver
-                      ? 'border-indigo-500/60 bg-indigo-500/5 text-indigo-300'
+                      ? 'border-purple-500/60 bg-purple-500/5 text-purple-300'
                       : 'border-slate-800/60 text-slate-400'
                   }`}
                 >

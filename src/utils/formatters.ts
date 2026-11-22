@@ -19,9 +19,9 @@ export const getPriorityInfo = (priority: Priority) => {
     case 'medium':
       return {
         label: 'Medium',
-        color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20 shadow-indigo-950/30',
-        dot: 'bg-indigo-500',
-        badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+        color: 'text-violet-400 bg-violet-500/10 border-violet-500/20 shadow-violet-950/30',
+        dot: 'bg-violet-500',
+        badge: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
       }
     case 'low':
       return {
@@ -45,16 +45,16 @@ export const getStatusInfo = (status: Status) => {
     case 'in_progress':
       return {
         label: 'In Progress',
-        color: 'text-sky-400 bg-sky-500/15 border-sky-500/30',
-        dot: 'bg-sky-400 animate-pulse',
-        columnBorder: 'border-t-sky-500',
+        color: 'text-purple-400 bg-purple-500/15 border-purple-500/30',
+        dot: 'bg-gradient-to-r from-purple-400 to-violet-400 animate-pulse',
+        columnBorder: 'border-t-purple-500',
       }
     case 'in_review':
       return {
         label: 'In Review',
-        color: 'text-purple-400 bg-purple-500/15 border-purple-500/30',
-        dot: 'bg-purple-400',
-        columnBorder: 'border-t-purple-500',
+        color: 'text-fuchsia-400 bg-fuchsia-500/15 border-fuchsia-500/30',
+        dot: 'bg-fuchsia-400',
+        columnBorder: 'border-t-fuchsia-500',
       }
     case 'done':
       return {

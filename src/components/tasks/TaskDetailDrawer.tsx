@@ -137,12 +137,12 @@ export const TaskDetailDrawer: React.FC = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center px-6 border-b border-slate-800 bg-[#0A0F1E] gap-6 text-xs font-medium">
+          <div className="flex items-center px-6 border-b border-slate-800 bg-[#0E0E16] gap-6 text-xs font-medium">
             <button
               onClick={() => setActiveTab('details')}
               className={`py-3 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === 'details'
-                  ? 'border-indigo-500 text-indigo-300 font-semibold'
+                  ? 'border-purple-500 text-purple-300 font-semibold'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -153,7 +153,7 @@ export const TaskDetailDrawer: React.FC = () => {
               onClick={() => setActiveTab('comments')}
               className={`py-3 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === 'comments'
-                  ? 'border-indigo-500 text-indigo-300 font-semibold'
+                  ? 'border-purple-500 text-purple-300 font-semibold'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -164,7 +164,7 @@ export const TaskDetailDrawer: React.FC = () => {
               onClick={() => setActiveTab('attachments')}
               className={`py-3 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === 'attachments'
-                  ? 'border-indigo-500 text-indigo-300 font-semibold'
+                  ? 'border-purple-500 text-purple-300 font-semibold'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -186,19 +186,19 @@ export const TaskDetailDrawer: React.FC = () => {
                     type="text"
                     value={selectedTask.title}
                     onChange={(e) => updateTask(selectedTask.id, { title: e.target.value })}
-                    className="w-full text-lg font-bold bg-transparent text-slate-100 hover:bg-slate-800/40 focus:bg-slate-900 px-2 py-1 -ml-2 rounded-lg border border-transparent focus:border-indigo-500/50 focus:outline-none transition-all"
+                    className="w-full text-lg font-bold bg-transparent text-slate-100 hover:bg-slate-800/40 focus:bg-slate-900 px-2 py-1 -ml-2 rounded-lg border border-transparent focus:border-purple-500/50 focus:outline-none transition-all"
                   />
                 </div>
 
                 {/* Primary Properties Grid */}
-                <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-[#090D18] border border-slate-800 text-xs">
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-[#0C0C12] border border-slate-800 text-xs">
                   {/* Status Picker */}
                   <div>
                     <label className="text-[11px] text-slate-400 block mb-1.5">Status</label>
                     <select
                       value={selectedTask.status}
                       onChange={(e) => moveTaskStatus(selectedTask.id, e.target.value as Status)}
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
                     >
                       <option value="backlog">Backlog</option>
                       <option value="in_progress">In Progress</option>
@@ -213,7 +213,7 @@ export const TaskDetailDrawer: React.FC = () => {
                     <select
                       value={selectedTask.priority}
                       onChange={(e) => updateTask(selectedTask.id, { priority: e.target.value as Priority })}
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
                     >
                       <option value="urgent">Urgent</option>
                       <option value="high">High</option>
@@ -228,7 +228,7 @@ export const TaskDetailDrawer: React.FC = () => {
                     <select
                       value={selectedTask.assigneeId}
                       onChange={(e) => updateTask(selectedTask.id, { assigneeId: e.target.value })}
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
                     >
                       {users.map((u) => (
                         <option key={u.id} value={u.id}>
@@ -247,7 +247,7 @@ export const TaskDetailDrawer: React.FC = () => {
                       type="date"
                       value={selectedTask.dueDate}
                       onChange={(e) => updateTask(selectedTask.id, { dueDate: e.target.value })}
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
                     />
                   </div>
 
@@ -261,7 +261,7 @@ export const TaskDetailDrawer: React.FC = () => {
                       onChange={(e) =>
                         updateTask(selectedTask.id, { estimatedHours: Math.max(0, Number(e.target.value)) })
                       }
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
                     />
                   </div>
 
@@ -274,7 +274,7 @@ export const TaskDetailDrawer: React.FC = () => {
                       onChange={(e) =>
                         updateTask(selectedTask.id, { loggedHours: Math.max(0, Number(e.target.value)) })
                       }
-                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
                     />
                   </div>
                 </div>
@@ -289,7 +289,7 @@ export const TaskDetailDrawer: React.FC = () => {
                     value={selectedTask.description}
                     onChange={(e) => updateTask(selectedTask.id, { description: e.target.value })}
                     placeholder="Add detailed task specifications, requirements, or acceptance criteria..."
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#090D18] border border-slate-800 text-slate-200 text-xs leading-relaxed focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2.5 rounded-xl bg-[#0C0C12] border border-slate-800 text-slate-200 text-xs leading-relaxed focus:outline-none focus:border-purple-500"
                   />
                 </div>
 
@@ -298,11 +298,11 @@ export const TaskDetailDrawer: React.FC = () => {
                   <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5 block">
                     Tags & Labels
                   </label>
-                  <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-[#090D18] border border-slate-800">
+                  <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-[#0C0C12] border border-slate-800">
                     {selectedTask.tags.map((t) => (
                       <span
                         key={t}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-500/25"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-500/15 text-purple-300 border border-purple-500/25"
                       >
                         #{t}
                         <button
@@ -330,7 +330,7 @@ export const TaskDetailDrawer: React.FC = () => {
                     <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                       Checklist & Subtasks ({completedSubtasks}/{totalSubtasks})
                     </label>
-                    <span className="text-xs font-mono text-indigo-400">
+                    <span className="text-xs font-mono text-purple-400">
                       {totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0}%
                     </span>
                   </div>
@@ -338,7 +338,7 @@ export const TaskDetailDrawer: React.FC = () => {
                   {/* Progress bar */}
                   <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-fuchsia-400 transition-all duration-300"
                       style={{
                         width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%`,
                       }}
@@ -386,7 +386,7 @@ export const TaskDetailDrawer: React.FC = () => {
                       value={newSubtaskTitle}
                       onChange={(e) => setNewSubtaskTitle(e.target.value)}
                       placeholder="Add new subtask item..."
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+                      className="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500"
                     />
                     <button
                       type="submit"
@@ -414,7 +414,7 @@ export const TaskDetailDrawer: React.FC = () => {
                       return (
                         <div
                           key={comm.id}
-                          className="p-3 rounded-xl bg-[#090D18] border border-slate-800 space-y-2 text-xs"
+                          className="p-3 rounded-xl bg-[#0C0C12] border border-slate-800 space-y-2 text-xs"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -454,7 +454,7 @@ export const TaskDetailDrawer: React.FC = () => {
                       value={newCommentText}
                       onChange={(e) => setNewCommentText(e.target.value)}
                       placeholder="Write a comment or mention @team..."
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 pr-12"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500 pr-12"
                     />
                     <button
                       type="submit"
@@ -498,10 +498,10 @@ export const TaskDetailDrawer: React.FC = () => {
                     selectedTask.attachments.map((att) => (
                       <div
                         key={att.id}
-                        className="group flex items-center justify-between p-3 rounded-xl bg-[#090D18] border border-slate-800 text-xs hover:border-slate-700 transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-xl bg-[#0C0C12] border border-slate-800 text-xs hover:border-slate-700 transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-purple-400 flex items-center justify-center shrink-0">
                             <Paperclip className="w-4 h-4" />
                           </div>
                           <div className="min-w-0 flex-1">

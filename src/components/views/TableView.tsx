@@ -71,9 +71,9 @@ export const TableView: React.FC = () => {
       return <ArrowUpDown className="w-3 h-3 text-slate-500" />
     }
     return filters.sortOrder === 'asc' ? (
-      <ArrowUp className="w-3 h-3 text-indigo-400 font-bold" />
+      <ArrowUp className="w-3 h-3 text-purple-400 font-bold" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-indigo-400 font-bold" />
+      <ArrowDown className="w-3 h-3 text-purple-400 font-bold" />
     )
   }
 
@@ -81,8 +81,8 @@ export const TableView: React.FC = () => {
     <div className="space-y-4 animate-fadeIn select-none">
       {/* Batch Actions Bar (visible if 1+ selected) */}
       {selectedTaskIds.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-indigo-950/80 border border-indigo-500/40 text-xs shadow-lg animate-fadeIn">
-          <span className="font-semibold text-indigo-200">
+        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-950/90 via-violet-950/80 to-purple-950/90 border border-purple-500/40 shadow-xl shadow-purple-950/40 text-xs shadow-lg animate-fadeIn">
+          <span className="font-semibold text-purple-200">
             {selectedTaskIds.length} {selectedTaskIds.length === 1 ? 'task' : 'tasks'} selected
           </span>
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export const TableView: React.FC = () => {
       {/* Table Container */}
       <div className="overflow-x-auto rounded-2xl border border-slate-800/80 bg-[#0E1424] shadow-xl">
         <table className="w-full text-left text-xs text-slate-300 divide-y divide-slate-800/80">
-          <thead className="bg-[#0B0F1C] text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <thead className="bg-[#0D0D12] text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             <tr>
               <th className="py-3.5 pl-4 pr-2 w-8">
                 <input
@@ -117,7 +117,7 @@ export const TableView: React.FC = () => {
                     selectedTaskIds.length === filteredTasks.length
                   }
                   onChange={handleSelectAll}
-                  className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer"
+                  className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-purple-600 focus:ring-0 cursor-pointer"
                 />
               </th>
               <th className="py-3.5 px-3 w-28">Code</th>
@@ -126,7 +126,7 @@ export const TableView: React.FC = () => {
                 className="py-3.5 px-3 cursor-pointer hover:text-slate-100"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className={filters.sortBy === 'title' ? 'text-indigo-300 font-bold' : ''}>Task Title</span>
+                  <span className={filters.sortBy === 'title' ? 'text-purple-300 font-bold' : ''}>Task Title</span>
                   {renderSortIcon('title')}
                 </div>
               </th>
@@ -136,7 +136,7 @@ export const TableView: React.FC = () => {
                 className="py-3.5 px-3 w-28 cursor-pointer hover:text-slate-100"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className={filters.sortBy === 'priority' ? 'text-indigo-300 font-bold' : ''}>Priority</span>
+                  <span className={filters.sortBy === 'priority' ? 'text-purple-300 font-bold' : ''}>Priority</span>
                   {renderSortIcon('priority')}
                 </div>
               </th>
@@ -146,7 +146,7 @@ export const TableView: React.FC = () => {
                 className="py-3.5 px-3 w-32 cursor-pointer hover:text-slate-100"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className={filters.sortBy === 'dueDate' ? 'text-indigo-300 font-bold' : ''}>Due Date</span>
+                  <span className={filters.sortBy === 'dueDate' ? 'text-purple-300 font-bold' : ''}>Due Date</span>
                   {renderSortIcon('dueDate')}
                 </div>
               </th>
@@ -171,7 +171,7 @@ export const TableView: React.FC = () => {
                     key={task.id}
                     onClick={() => setSelectedTaskId(task.id)}
                     className={`hover:bg-slate-800/40 cursor-pointer transition-colors ${
-                      isSelected ? 'bg-indigo-950/20' : ''
+                      isSelected ? 'bg-purple-950/25 border-l-2 border-purple-500' : ''
                     }`}
                   >
                     {/* Checkbox */}
@@ -180,7 +180,7 @@ export const TableView: React.FC = () => {
                         type="checkbox"
                         checked={isSelected}
                         onChange={(e) => handleSelectRow(e as any, task.id)}
-                        className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer"
+                        className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-purple-600 focus:ring-0 cursor-pointer"
                       />
                     </td>
 
@@ -191,7 +191,7 @@ export const TableView: React.FC = () => {
 
                     {/* Title & Tags */}
                     <td className="py-3 px-3">
-                      <div className="font-semibold text-slate-100 hover:text-indigo-300 transition-colors">
+                      <div className="font-semibold text-slate-100 hover:text-purple-300 transition-colors">
                         {task.title}
                       </div>
                       {task.tags.length > 0 && (
@@ -213,7 +213,7 @@ export const TableView: React.FC = () => {
                       <select
                         value={task.status}
                         onChange={(e) => moveTaskStatus(task.id, e.target.value as Status)}
-                        className="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-medium"
+                        className="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-medium"
                       >
                         <option value="backlog">Backlog</option>
                         <option value="in_progress">In Progress</option>
@@ -229,7 +229,7 @@ export const TableView: React.FC = () => {
                         onChange={(e) =>
                           updateTask(task.id, { priority: e.target.value as Priority })
                         }
-                        className="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-medium"
+                        className="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-medium"
                       >
                         <option value="urgent">Urgent</option>
                         <option value="high">High</option>

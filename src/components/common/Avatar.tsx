@@ -65,7 +65,7 @@ export const Avatar: React.FC<AvatarProps> = ({
           loading="lazy"
         />
       ) : (
-        <div className="w-full h-full rounded-full bg-indigo-600/30 text-indigo-200 border border-indigo-500/30 flex items-center justify-center font-medium">
+        <div className="w-full h-full rounded-full bg-purple-600/30 text-purple-200 border border-purple-500/30 flex items-center justify-center font-medium">
           {initials}
         </div>
       )}

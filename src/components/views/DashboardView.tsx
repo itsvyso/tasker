@@ -52,13 +52,13 @@ export const DashboardView: React.FC = () => {
   return (
     <div className="space-y-6 animate-fadeIn pb-12 select-none">
       {/* Top Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-950/60 via-[#0E1528] to-cyan-950/40 border border-slate-800/80 p-6 shadow-xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950/60 via-[#100E1D] to-indigo-950/40 border border-purple-500/20 p-6 shadow-xl">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-indigo-400" />
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-purple-400" />
                 Active Sprint • Week 47
               </span>
               <span className="text-xs text-slate-400">Target: {activeProject.targetDate}</span>
@@ -76,12 +76,12 @@ export const DashboardView: React.FC = () => {
               onClick={() => setActiveView('kanban')}
               className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition-all shadow"
             >
-              <Layers className="w-4 h-4 text-indigo-400" />
+              <Layers className="w-4 h-4 text-purple-400" />
               Open Kanban
             </button>
             <button
               onClick={() => openCreateTaskModal()}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/30"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-lg shadow-purple-600/30 border border-purple-400/20"
             >
               <Plus className="w-4 h-4" />
               New Sprint Task
@@ -93,7 +93,7 @@ export const DashboardView: React.FC = () => {
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric Card 1: Sprint Progress */}
-        <div className="p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Sprint Completion</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
@@ -123,7 +123,7 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Metric Card 2: In-Progress / Velocity */}
-        <div className="p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Active Velocity</span>
             <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
@@ -147,10 +147,10 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Metric Card 3: Hours Logged vs Estimate */}
-        <div className="p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Hours Burned</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
               <Clock className="w-4 h-4" />
             </div>
           </div>
@@ -161,13 +161,13 @@ export const DashboardView: React.FC = () => {
               </span>
               <span className="text-xs text-slate-400 ml-2">/ {totalEstimatedHours}h est.</span>
             </div>
-            <span className="text-[11px] font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+            <span className="text-[11px] font-semibold text-purple-400 bg-purple-500/15 px-2 py-0.5 rounded border border-indigo-500/20">
               {Math.round((totalLoggedHours / Math.max(1, totalEstimatedHours)) * 100)}%
             </span>
           </div>
           <div className="w-full h-1.5 bg-slate-800 rounded-full mt-3 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-purple-400"
+              className="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-fuchsia-400"
               style={{
                 width: `${Math.min(
                   100,
@@ -186,7 +186,7 @@ export const DashboardView: React.FC = () => {
               setActiveView('table')
             }
           }}
-          className={`p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all ${
+          className={`p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all ${
             urgentTasks.length > 0 ? 'cursor-pointer hover:border-rose-500/40' : ''
           }`}
           title={urgentTasks.length > 0 ? 'Click to view urgent tasks in table' : undefined}
@@ -223,15 +223,15 @@ export const DashboardView: React.FC = () => {
       {/* Bento Middle Row: Upcoming Deadlines + Workload Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Upcoming Deadlines (2 cols) */}
-        <div className="lg:col-span-2 p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col">
+        <div className="lg:col-span-2 p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-400" />
+              <Calendar className="w-4 h-4 text-purple-400" />
               <h3 className="text-sm font-bold text-slate-100">Upcoming Sprint Deadlines</h3>
             </div>
             <button
               onClick={() => setActiveView('table')}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+              className="text-xs text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1"
             >
               View all tasks <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
@@ -294,7 +294,7 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Team Workload Card (1 col) */}
-        <div className="p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export const DashboardView: React.FC = () => {
                             ? 'bg-rose-500'
                             : loadPercent > 50
                             ? 'bg-amber-500'
-                            : 'bg-indigo-500'
+                            : 'bg-purple-500'
                         }`}
                         style={{ width: `${loadPercent}%` }}
                       />
@@ -343,7 +343,7 @@ export const DashboardView: React.FC = () => {
 
           <div className="pt-4 border-t border-slate-800 mt-4 flex items-center justify-between text-[11px] text-slate-400">
             <span>Standard Sprint Capacity: 40h/wk</span>
-            <span className="text-indigo-400 font-semibold">Optimal</span>
+            <span className="text-purple-400 font-semibold">Optimal</span>
           </div>
         </div>
       </div>
@@ -351,7 +351,7 @@ export const DashboardView: React.FC = () => {
       {/* Bento Bottom Row: Live Activity Stream + Project Quick Specs */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Live Activity (2 cols) */}
-        <div className="lg:col-span-2 p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md">
+        <div className="lg:col-span-2 p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-purple-400" />
@@ -380,7 +380,7 @@ export const DashboardView: React.FC = () => {
                     <div className="min-w-0 truncate">
                       <span className="font-semibold text-slate-200">{user?.name || 'Someone'}</span>{' '}
                       <span className="text-slate-400">{act.action}</span>{' '}
-                      <span className="font-medium text-indigo-300 truncate">{act.targetTitle}</span>
+                      <span className="font-medium text-purple-300 truncate">{act.targetTitle}</span>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-3">
@@ -393,7 +393,7 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Project Deliverable Stats (1 col) */}
-        <div className="p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-bold text-slate-100 mb-3">Project Metadata</h3>
             <div className="space-y-2.5 text-xs">
@@ -403,7 +403,7 @@ export const DashboardView: React.FC = () => {
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
                 <span className="text-slate-400">Project Code</span>
-                <span className="font-mono text-indigo-300 font-semibold">{activeProject.code}</span>
+                <span className="font-mono text-purple-300 font-semibold">{activeProject.code}</span>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-slate-800/60">
                 <span className="text-slate-400">Sprint Budget</span>
@@ -416,9 +416,9 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-center justify-between mt-4">
+          <div className="p-3 rounded-xl bg-purple-500/15 border border-indigo-500/20 text-xs text-purple-300 flex items-center justify-between mt-4">
             <span>Designed for High Output</span>
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+            <Sparkles className="w-4 h-4 text-purple-400" />
           </div>
         </div>
       </div>
