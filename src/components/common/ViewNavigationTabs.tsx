@@ -10,6 +10,7 @@ import {
   Calendar,
   Clock,
   MessageSquare,
+  Sparkles,
   Plus,
 } from 'lucide-react'
 
@@ -23,6 +24,7 @@ export const ViewNavigationTabs: React.FC = () => {
     { id: 'calendar', label: 'Sprint Calendar', icon: Calendar },
     { id: 'timeline', label: 'Timeline & Gantt', icon: Clock },
     { id: 'team_chat', label: 'Team Messenger', icon: MessageSquare },
+    { id: 'routines', label: 'Routines & Insights', icon: Sparkles },
   ]
 
   return (

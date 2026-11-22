@@ -10,6 +10,7 @@ import type {
   Status,
   Subtask,
   Attachment,
+  RoutineItem,
 } from '../types'
 import {
   INITIAL_TASKS,
@@ -17,6 +18,7 @@ import {
   INITIAL_USERS,
   INITIAL_ACTIVITIES,
   INITIAL_CHAT_MESSAGES,
+  INITIAL_ROUTINES,
 } from '../mock/initialData'
 import { triggerConfetti } from '../utils/confetti'
 
@@ -40,6 +42,7 @@ interface TaskContextType {
   isSidebarCollapsed: boolean
   activities: Activity[]
   chatMessages: ChatMessage[]
+  routines: RoutineItem[]
   
   // Actions
   setActiveProjectId: (id: string) => void
@@ -77,6 +80,10 @@ interface TaskContextType {
   sendChatMessage: (content: string) => void
   createProject: (project: Omit<Project, 'id' | 'createdAt'>) => Project
   deleteProject: (projectId: string) => void
+  toggleRoutineToday: (routineId: string) => void
+  addRoutine: (routine: { title: string; targetDurationMinutes: number; category?: string; color?: string }) => RoutineItem
+  deleteRoutine: (routineId: string) => void
+  resetRoutinesToDefault: () => void
   resetToMockData: () => void
 }
 
@@ -99,6 +106,7 @@ const STORAGE_KEYS = {
   ACTIVE_VIEW: 'taske_active_view_v1',
   ACTIVITIES: 'taske_activities_v1',
   CHAT: 'taske_chat_v1',
+  ROUTINES: 'taske_routines_v1',
 }
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -182,6 +190,20 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   })
 
+  // Routines state
+  const [routines, setRoutines] = useState<RoutineItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ROUTINES)
+      if (saved !== null) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) return parsed
+      }
+      return INITIAL_ROUTINES
+    } catch {
+      return INITIAL_ROUTINES
+    }
+  })
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [filters, setFiltersState] = useState<FilterOptions>(defaultFilters)
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false)
@@ -227,6 +249,14 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('LocalStorage error:', e)
     }
   }, [chatMessages])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(routines))
+    } catch (e) {
+      console.warn('LocalStorage error:', e)
+    }
+  }, [routines])
 
   const setActiveProjectId = useCallback((id: string) => {
     setActiveProjectIdState(id)
@@ -616,6 +646,61 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks((prev) => prev.filter((t) => t.projectId !== projectId))
   }, [activeProjectId])
 
+  const toggleRoutineToday = useCallback((routineId: string) => {
+    setRoutines((prev) =>
+      prev.map((r) => {
+        if (r.id !== routineId) return r
+        const nextCompleted = !r.completedToday
+        const updatedHistory =
+          Array.isArray(r.history) && r.history.length === 7
+            ? [...r.history]
+            : [false, false, false, false, false, false, false]
+        updatedHistory[6] = nextCompleted
+        const nextStreak = nextCompleted ? r.streak + 1 : Math.max(0, r.streak - 1)
+        if (nextCompleted) {
+          triggerConfetti()
+        }
+        return {
+          ...r,
+          completedToday: nextCompleted,
+          streak: nextStreak,
+          history: updatedHistory,
+        }
+      })
+    )
+  }, [])
+
+  const addRoutine = useCallback(
+    (routineData: { title: string; targetDurationMinutes: number; category?: string; color?: string }) => {
+      const sanitizedDuration = Math.min(
+        240,
+        Math.max(5, Math.abs(Number(routineData.targetDurationMinutes)) || 25)
+      )
+      const sanitizedTitle = routineData.title.trim().slice(0, 80)
+      const newRoutine: RoutineItem = {
+        id: `routine-${Date.now()}`,
+        title: sanitizedTitle,
+        category: routineData.category?.trim().slice(0, 40) || 'General',
+        targetDurationMinutes: sanitizedDuration,
+        streak: 0,
+        completedToday: false,
+        history: [false, false, false, false, false, false, false],
+        color: routineData.color || '#A855F7',
+      }
+      setRoutines((prev) => [newRoutine, ...prev])
+      return newRoutine
+    },
+    []
+  )
+
+  const deleteRoutine = useCallback((routineId: string) => {
+    setRoutines((prev) => prev.filter((r) => r.id !== routineId))
+  }, [])
+
+  const resetRoutinesToDefault = useCallback(() => {
+    setRoutines(INITIAL_ROUTINES)
+  }, [])
+
   const resetToMockData = useCallback(() => {
     try {
       localStorage.removeItem(STORAGE_KEYS.TASKS)
@@ -623,6 +708,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem(STORAGE_KEYS.ACTIVE_PROJECT)
       localStorage.removeItem(STORAGE_KEYS.ACTIVITIES)
       localStorage.removeItem(STORAGE_KEYS.CHAT)
+      localStorage.removeItem(STORAGE_KEYS.ROUTINES)
     } catch {
       // ignore
     }
@@ -631,6 +717,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveProjectIdState(INITIAL_PROJECTS[0].id)
     setActivities(INITIAL_ACTIVITIES)
     setChatMessages(INITIAL_CHAT_MESSAGES)
+    setRoutines(INITIAL_ROUTINES)
     setFiltersState(defaultFilters)
     setSelectedTaskId(null)
   }, [])
@@ -668,6 +755,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (e.key === '6' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
         setActiveView('team_chat')
+      } else if (e.key === '7' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('routines')
       } else if (e.key === 'Escape') {
         setIsCommandPaletteOpen(false)
         setIsCreateTaskModalOpen(false)
@@ -700,6 +790,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isSidebarCollapsed,
     activities,
     chatMessages,
+    routines,
 
     setActiveProjectId,
     setActiveView,
@@ -725,6 +816,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     sendChatMessage,
     createProject,
     deleteProject,
+    toggleRoutineToday,
+    addRoutine,
+    deleteRoutine,
+    resetRoutinesToDefault,
     resetToMockData,
   }
 

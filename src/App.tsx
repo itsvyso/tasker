@@ -10,6 +10,7 @@ import { TableView } from './components/views/TableView'
 import { CalendarView } from './components/views/CalendarView'
 import { TimelineView } from './components/views/TimelineView'
 import { TeamChatView } from './components/views/TeamChatView'
+import { RoutinesView } from './components/views/RoutinesView'
 import { TaskDetailDrawer } from './components/tasks/TaskDetailDrawer'
 import { CreateTaskModal } from './components/tasks/CreateTaskModal'
 import { CreateProjectModal } from './components/tasks/CreateProjectModal'
@@ -32,6 +33,8 @@ const MainContent: React.FC = () => {
         return <TimelineView />
       case 'team_chat':
         return <TeamChatView />
+      case 'routines':
+        return <RoutinesView />
       default:
         return <DashboardView />
     }

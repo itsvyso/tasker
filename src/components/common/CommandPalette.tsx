@@ -100,6 +100,13 @@ export const CommandPalette: React.FC = () => {
         subtitle: 'Visual task durations',
         action: () => setActiveView('timeline'),
       },
+      {
+        type: 'action' as const,
+        id: 'action-view-routines',
+        title: 'Switch to Routines & Insights',
+        subtitle: 'Habit tracker, dot matrix schedule, 3D status & pomodoro',
+        action: () => setActiveView('routines'),
+      },
     ].filter((a) => !q || a.title.toLowerCase().includes(q))
 
     return [...taskMatches, ...projectMatches, ...actions]

@@ -90,7 +90,31 @@ export interface ChatMessage {
   attachments?: string[]
 }
 
-export type ViewMode = 'dashboard' | 'kanban' | 'table' | 'calendar' | 'timeline' | 'team_chat'
+export type ViewMode = 'dashboard' | 'kanban' | 'table' | 'calendar' | 'timeline' | 'team_chat' | 'routines'
+
+export interface RoutineItem {
+  id: string
+  title: string
+  category?: string
+  targetDurationMinutes: number
+  streak: number
+  completedToday: boolean
+  history: boolean[] // 7-day completion history (Mon-Sun)
+  color?: string
+}
+
+export interface RoutineScheduleBlock {
+  id: string
+  title: string
+  duration: string
+  hours: number
+  progress: number // 0 to 100
+  status: 'In Test' | 'Reviewed' | 'Complete'
+  assigneeId: string
+  startTime: string
+  dayIndex: number
+  category: string
+}
 
 export interface FilterOptions {
   search: string

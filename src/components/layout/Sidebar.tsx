@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Zap,
   FolderPlus,
+  Sparkles,
 } from 'lucide-react'
 
 export const Sidebar: React.FC = () => {
@@ -45,6 +46,7 @@ export const Sidebar: React.FC = () => {
     { id: 'calendar', label: 'Sprint Calendar', shortcut: '4', icon: Calendar },
     { id: 'timeline', label: 'Timeline & Gantt', shortcut: '5', icon: Clock },
     { id: 'team_chat', label: 'Team Messenger', shortcut: '6', icon: MessageSquare },
+    { id: 'routines', label: 'Routines & Insights', shortcut: '7', icon: Sparkles },
   ]
 
   return (
