@@ -1,9 +1,14 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import type { Status } from '../../types'
 import { TaskCard } from '../tasks/TaskCard'
 import { getStatusInfo } from '../../utils/formatters'
+import { createStaggerContainer, staggerItem } from '../../utils/motion'
 import { Plus } from 'lucide-react'
+
+const boardVariants = createStaggerContainer(0.04, 0.02)
+const columnCardsVariants = createStaggerContainer(0.03, 0.01)
 
 export const KanbanView: React.FC = () => {
   const { filteredTasks, moveTaskStatus, openCreateTaskModal } = useTaskContext()
@@ -40,22 +45,28 @@ export const KanbanView: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex gap-4 overflow-x-auto pb-6 select-none animate-fadeIn">
+    <motion.div
+      variants={boardVariants}
+      initial="hidden"
+      animate="visible"
+      className="h-full flex gap-4 overflow-x-auto pb-6 select-none"
+    >
       {columns.map(({ status, title }) => {
         const columnTasks = filteredTasks.filter((t) => t.status === status)
         const statusInfo = getStatusInfo(status)
         const isOver = dragOverColumn === status
 
         return (
-          <div
+          <motion.div
             key={status}
+            variants={staggerItem}
             onDragOver={(e) => handleDragOver(e, status)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, status)}
-            className={`w-80 shrink-0 flex flex-col bg-[#0D0D12]/90 border border-white/[0.08] rounded-2xl border transition-all duration-200 ${
+            className={`w-80 shrink-0 flex flex-col bg-[#0D0D12]/90 border rounded-2xl transition-all duration-200 ${
               isOver
-                ? 'border-purple-500/80 bg-purple-950/20 shadow-xl shadow-purple-950/40'
-                : 'border-slate-800/80'
+                ? 'border-purple-500/80 bg-purple-950/20 shadow-xl shadow-purple-950/40 ring-1 ring-purple-500/30'
+                : 'border-white/[0.08] hover:border-slate-700/80'
             }`}
           >
             {/* Column Header */}
@@ -82,7 +93,10 @@ export const KanbanView: React.FC = () => {
             </div>
 
             {/* Column Cards Container */}
-            <div className="flex-1 p-2.5 space-y-2.5 overflow-y-auto max-h-[calc(100vh-210px)] min-h-[300px]">
+            <motion.div
+              variants={columnCardsVariants}
+              className="flex-1 p-2.5 space-y-2.5 overflow-y-auto max-h-[calc(100vh-210px)] min-h-[300px]"
+            >
               {columnTasks.length === 0 ? (
                 <div
                   className={`h-36 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 text-center transition-colors ${
@@ -95,12 +109,16 @@ export const KanbanView: React.FC = () => {
                   <p className="text-[10px] mt-0.5">Drag cards here or click +</p>
                 </div>
               ) : (
-                columnTasks.map((task) => <TaskCard key={task.id} task={task} />)
+                columnTasks.map((task) => (
+                  <motion.div key={task.id} variants={staggerItem}>
+                    <TaskCard task={task} />
+                  </motion.div>
+                ))
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )
       })}
-    </div>
+    </motion.div>
   )
 }

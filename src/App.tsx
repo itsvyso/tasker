@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { TaskProvider, useTaskContext } from './context/TaskContext'
 import { Sidebar } from './components/layout/Sidebar'
 import { TopNavbar } from './components/layout/TopNavbar'
@@ -55,7 +56,17 @@ const MainContent: React.FC = () => {
       >
         <div className="max-w-[1600px] mx-auto">
           <ViewNavigationTabs />
-          {renderActiveView()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeView}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              {renderActiveView()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 

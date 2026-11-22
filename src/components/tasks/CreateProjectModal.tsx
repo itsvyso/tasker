@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
+import { modalBackdropVariants, modalCardVariants } from '../../utils/motion'
 import { X, FolderPlus, Sparkles } from 'lucide-react'
 
 const COLOR_OPTIONS = [
@@ -30,8 +32,6 @@ export const CreateProjectModal: React.FC = () => {
     d.setDate(d.getDate() + 30)
     return d.toISOString().split('T')[0]
   })
-
-  if (!isCreateProjectModalOpen) return null
 
   const handleNameChange = (val: string) => {
     setName(val)
@@ -70,29 +70,45 @@ export const CreateProjectModal: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn select-none">
-      <div
-        className="w-full max-w-lg bg-[#0E0E16] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#121A2F]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
-              <FolderPlus className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-100">Create New Project</h3>
-              <p className="text-[11px] text-slate-400">Initialize a workspace sprint board & channel</p>
-            </div>
-          </div>
-          <button
+    <AnimatePresence>
+      {isCreateProjectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
+          <motion.div
+            key="create-project-backdrop"
+            variants={modalBackdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={() => setIsCreateProjectModalOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          />
+          <motion.div
+            key="create-project-card"
+            variants={modalCardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="w-full max-w-lg bg-[#0E0E16] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10"
+            onClick={(e) => e.stopPropagation()}
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#121A2F]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+                  <FolderPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Create New Project</h3>
+                  <p className="text-[11px] text-slate-400">Initialize a workspace sprint board & channel</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCreateProjectModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
@@ -225,7 +241,9 @@ export const CreateProjectModal: React.FC = () => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }

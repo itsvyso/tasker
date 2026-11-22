@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import type { Task } from '../../types'
 import { Avatar } from '../common/Avatar'
+import { snappySpring } from '../../utils/motion'
 import { Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const TimelineView: React.FC = () => {
@@ -29,7 +31,7 @@ export const TimelineView: React.FC = () => {
     setStartDate(new Date(today.getTime() - 4 * msPerDay))
   }
 
-  const todayDateStr = React.useMemo(() => new Date().toISOString().split('T')[0], [])
+  const [todayDateStr] = useState(() => new Date().toISOString().split('T')[0])
 
   const timelineDays: { date: Date; dateStr: string; dayNum: number; dayName: string }[] = []
   for (let i = 0; i < totalDays; i++) {
@@ -212,8 +214,11 @@ export const TimelineView: React.FC = () => {
                         Scheduled outside visible window ({task.startDate || task.dueDate} → {task.dueDate})
                       </span>
                     ) : (
-                      <div
-                        className={`absolute h-7 rounded-lg border text-white text-[11px] font-medium flex items-center px-2.5 shadow-md truncate transition-all hover:scale-[1.01] hover:brightness-110 ${statusColor}`}
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={snappySpring}
+                        className={`absolute h-7 rounded-lg border text-white text-[11px] font-medium flex items-center px-2.5 shadow-md truncate transition-all hover:brightness-110 ${statusColor}`}
                         style={posStyles}
                       >
                         <span className="truncate">{task.title}</span>
@@ -222,7 +227,7 @@ export const TimelineView: React.FC = () => {
                             {completedSubtasks}/{totalSubtasks}
                           </span>
                         )}
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </div>

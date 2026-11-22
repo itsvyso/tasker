@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
+import { snappySpring } from '../../utils/motion'
 import {
   ChevronLeft,
   ChevronRight,
@@ -33,7 +35,7 @@ export const CalendarView: React.FC = () => {
     setCurrentDate(new Date())
   }
 
-  const todayDateStr = React.useMemo(() => new Date().toISOString().split('T')[0], [])
+  const [todayDateStr] = useState(() => new Date().toISOString().split('T')[0])
 
   // Calculate calendar days reliably using Date arithmetic
   const firstDayOfMonth = new Date(year, month, 1)
@@ -169,10 +171,13 @@ export const CalendarView: React.FC = () => {
                   {dayTasks.map((task) => {
                     const isDone = task.status === 'done'
                     return (
-                      <div
+                      <motion.div
                         key={task.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={snappySpring}
                         onClick={() => setSelectedTaskId(task.id)}
-                        className={`px-2 py-1 rounded-md text-[11px] font-medium border text-slate-200 cursor-pointer truncate transition-all flex items-center gap-1.5 shadow-sm ${
+                        className={`px-2 py-1 rounded-md text-[11px] font-medium border text-slate-200 cursor-pointer truncate transition-colors flex items-center gap-1.5 shadow-sm ${
                           isDone
                             ? 'bg-slate-900/60 border-slate-800 line-through text-slate-400 opacity-70'
                             : 'bg-[#14141E] hover:bg-purple-600/25 border-white/[0.08] hover:border-purple-500/50'
@@ -195,7 +200,7 @@ export const CalendarView: React.FC = () => {
                           />
                         )}
                         <span className="truncate">{task.title}</span>
-                      </div>
+                      </motion.div>
                     )
                   })}
                 </div>

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import { Avatar } from '../common/Avatar'
+import { snappySpring } from '../../utils/motion'
 import { Send, MessageSquare, Users } from 'lucide-react'
 
 export const TeamChatView: React.FC = () => {
@@ -67,8 +69,11 @@ export const TeamChatView: React.FC = () => {
               const isMe = msg.senderId === currentUser.id
 
               return (
-                <div
+                <motion.div
                   key={msg.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={snappySpring}
                   className={`flex items-start gap-3 text-xs ${isMe ? 'flex-row-reverse' : ''}`}
                 >
                   <Avatar user={sender} size="sm" showStatus={true} />
@@ -94,7 +99,7 @@ export const TeamChatView: React.FC = () => {
                       {msg.content}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )
             })
           )}
@@ -106,13 +111,16 @@ export const TeamChatView: React.FC = () => {
           <span className="text-[10px] uppercase font-semibold text-slate-400">Quick React:</span>
           {['🚀 Shipped!', '🔥 Looks incredible', '👍 Approved', '🎉 Great sprint', '⚡ Boost'].map(
             (phrase) => (
-              <button
+              <motion.button
                 key={phrase}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={snappySpring}
                 onClick={() => handleQuickReaction(phrase)}
                 className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 transition-colors"
               >
                 {phrase}
-              </button>
+              </motion.button>
             )
           )}
         </div>

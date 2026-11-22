@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import type { Status, Priority } from '../../types'
 import { Avatar } from '../common/Avatar'
 import { formatDate, isOverdue } from '../../utils/formatters'
+import { createStaggerContainer, staggerRow, snappySpring } from '../../utils/motion'
+import { AnimatedCounter } from '../common/AnimatedCounter'
 import {
   ArrowUpDown,
   ArrowUp,
@@ -10,6 +13,8 @@ import {
   CheckCircle2,
   Trash2,
 } from 'lucide-react'
+
+const tableBodyVariants = createStaggerContainer(0.035, 0.01)
 
 export const TableView: React.FC = () => {
   const {
@@ -78,30 +83,39 @@ export const TableView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4 animate-fadeIn select-none">
+    <div className="space-y-4 select-none">
       {/* Batch Actions Bar (visible if 1+ selected) */}
       {selectedTaskIds.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-950/90 via-violet-950/80 to-purple-950/90 border border-purple-500/40 shadow-xl shadow-purple-950/40 text-xs shadow-lg animate-fadeIn">
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={snappySpring}
+          className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-950/90 via-violet-950/80 to-purple-950/90 border border-purple-500/40 shadow-xl shadow-purple-950/40 text-xs shadow-lg"
+        >
           <span className="font-semibold text-purple-200">
             {selectedTaskIds.length} {selectedTaskIds.length === 1 ? 'task' : 'tasks'} selected
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleBatchMarkDone}
               className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium flex items-center gap-1.5 transition-colors"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               Mark Done
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleBatchDelete}
               className="px-3 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white font-medium flex items-center gap-1.5 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Delete Selected
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Table Container */}
@@ -153,7 +167,12 @@ export const TableView: React.FC = () => {
               <th className="py-3.5 px-3 w-24 text-right">Hours</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/50">
+          <motion.tbody
+            variants={tableBodyVariants}
+            initial="hidden"
+            animate="visible"
+            className="divide-y divide-slate-800/50"
+          >
             {filteredTasks.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-12 text-center text-xs text-slate-400">
@@ -167,8 +186,9 @@ export const TableView: React.FC = () => {
                 const overdue = isOverdue(task.dueDate, task.status)
 
                 return (
-                  <tr
+                  <motion.tr
                     key={task.id}
+                    variants={staggerRow}
                     onClick={() => setSelectedTaskId(task.id)}
                     className={`hover:bg-slate-800/40 cursor-pointer transition-colors ${
                       isSelected ? 'bg-purple-950/25 border-l-2 border-purple-500' : ''
@@ -261,13 +281,13 @@ export const TableView: React.FC = () => {
 
                     {/* Hours */}
                     <td className="py-3 px-3 text-right font-mono text-slate-400">
-                      {task.loggedHours}/{task.estimatedHours}h
+                      <AnimatedCounter value={task.loggedHours} />/<AnimatedCounter value={task.estimatedHours} suffix="h" />
                     </td>
-                  </tr>
+                  </motion.tr>
                 )
               })
             )}
-          </tbody>
+          </motion.tbody>
         </table>
       </div>
     </div>

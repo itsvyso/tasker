@@ -1,8 +1,12 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import { PriorityBadge } from '../common/Badge'
 import { Avatar } from '../common/Avatar'
 import { formatDate, isOverdue } from '../../utils/formatters'
+import { AnimatedCounter } from '../common/AnimatedCounter'
+import { ShimmerWave } from '../common/ShimmerWave'
+import { createStaggerContainer, staggerItem, snappySpring } from '../../utils/motion'
 import {
   TrendingUp,
   Clock,
@@ -17,6 +21,9 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react'
+
+const dashboardContainerVariants = createStaggerContainer(0.04, 0.02)
+const metricsGridVariants = createStaggerContainer(0.035, 0.01)
 
 export const DashboardView: React.FC = () => {
   const {
@@ -50,9 +57,17 @@ export const DashboardView: React.FC = () => {
     .slice(0, 4)
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12 select-none">
+    <motion.div
+      variants={dashboardContainerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6 pb-12 select-none"
+    >
       {/* Top Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950/60 via-[#100E1D] to-indigo-950/40 border border-purple-500/20 p-6 shadow-xl">
+      <motion.div
+        variants={staggerItem}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950/60 via-[#100E1D] to-indigo-950/40 border border-purple-500/20 p-6 shadow-xl"
+      >
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -72,28 +87,42 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setActiveView('kanban')}
               className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition-all shadow"
             >
               <Layers className="w-4 h-4 text-purple-400" />
               Open Kanban
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => openCreateTaskModal()}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-lg shadow-purple-600/30 border border-purple-400/20"
             >
               <Plus className="w-4 h-4" />
               New Sprint Task
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Bento Grid Layout: KPI Metrics */}
+      <motion.div
+        variants={metricsGridVariants}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         {/* Metric Card 1: Sprint Progress */}
-        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <motion.div
+          variants={staggerItem}
+          whileHover={{ y: -3, transition: snappySpring }}
+          className="relative p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all overflow-hidden"
+        >
+          {completionPercentage === 100 && (
+            <ShimmerWave duration={2.4} repeatDelay={3.5} />
+          )}
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Sprint Completion</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
@@ -102,9 +131,11 @@ export const DashboardView: React.FC = () => {
           </div>
           <div className="mt-4 flex items-baseline justify-between">
             <div>
-              <span className="text-3xl font-extrabold text-white tracking-tight">
-                {completionPercentage}%
-              </span>
+              <AnimatedCounter
+                value={completionPercentage}
+                suffix="%"
+                className="text-3xl font-extrabold text-white tracking-tight"
+              />
               <span className="text-xs text-slate-400 ml-2">
                 ({completedTasks}/{totalTasks} tasks)
               </span>
@@ -115,15 +146,21 @@ export const DashboardView: React.FC = () => {
           </div>
           {/* Visual progress bar */}
           <div className="w-full h-1.5 bg-slate-800 rounded-full mt-3 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-500"
-              style={{ width: `${completionPercentage}%` }}
+            <motion.div
+              initial={false}
+              animate={{ width: `${completionPercentage}%` }}
+              transition={snappySpring}
+              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400"
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Metric Card 2: In-Progress / Velocity */}
-        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <motion.div
+          variants={staggerItem}
+          whileHover={{ y: -3, transition: snappySpring }}
+          className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Active Velocity</span>
             <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
@@ -132,9 +169,10 @@ export const DashboardView: React.FC = () => {
           </div>
           <div className="mt-4 flex items-baseline justify-between">
             <div>
-              <span className="text-3xl font-extrabold text-white tracking-tight">
-                {inProgressTasks + inReviewTasks}
-              </span>
+              <AnimatedCounter
+                value={inProgressTasks + inReviewTasks}
+                className="text-3xl font-extrabold text-white tracking-tight"
+              />
               <span className="text-xs text-slate-400 ml-2">in flight</span>
             </div>
             <span className="text-[11px] font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
@@ -144,10 +182,14 @@ export const DashboardView: React.FC = () => {
           <p className="text-[11px] text-slate-400 mt-3">
             {backlogTasks} tasks queued in sprint backlog
           </p>
-        </div>
+        </motion.div>
 
         {/* Metric Card 3: Hours Logged vs Estimate */}
-        <div className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <motion.div
+          variants={staggerItem}
+          whileHover={{ y: -3, transition: snappySpring }}
+          className="p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Hours Burned</span>
             <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
@@ -156,37 +198,45 @@ export const DashboardView: React.FC = () => {
           </div>
           <div className="mt-4 flex items-baseline justify-between">
             <div>
-              <span className="text-3xl font-extrabold text-white tracking-tight">
-                {totalLoggedHours}h
+              <AnimatedCounter
+                value={totalLoggedHours}
+                suffix="h"
+                className="text-3xl font-extrabold text-white tracking-tight"
+              />
+              <span className="text-xs text-slate-400 ml-2">
+                / <AnimatedCounter value={totalEstimatedHours} suffix="h" /> est.
               </span>
-              <span className="text-xs text-slate-400 ml-2">/ {totalEstimatedHours}h est.</span>
             </div>
             <span className="text-[11px] font-semibold text-purple-400 bg-purple-500/15 px-2 py-0.5 rounded border border-indigo-500/20">
               {Math.round((totalLoggedHours / Math.max(1, totalEstimatedHours)) * 100)}%
             </span>
           </div>
           <div className="w-full h-1.5 bg-slate-800 rounded-full mt-3 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-fuchsia-400"
-              style={{
+            <motion.div
+              initial={false}
+              animate={{
                 width: `${Math.min(
                   100,
                   (totalLoggedHours / Math.max(1, totalEstimatedHours)) * 100
                 )}%`,
               }}
+              transition={snappySpring}
+              className="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-fuchsia-400"
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Metric Card 4: Urgent Blockers */}
-        <div
+        <motion.div
+          variants={staggerItem}
+          whileHover={{ y: -3, transition: snappySpring }}
           onClick={() => {
             if (urgentTasks.length > 0) {
               setFilters({ priority: 'urgent' })
               setActiveView('table')
             }
           }}
-          className={`p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all ${
+          className={`p-5 rounded-2xl bg-[#0E0E14] border border-white/[0.08] shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all ${
             urgentTasks.length > 0 ? 'cursor-pointer hover:border-rose-500/40' : ''
           }`}
           title={urgentTasks.length > 0 ? 'Click to view urgent tasks in table' : undefined}
@@ -199,9 +249,10 @@ export const DashboardView: React.FC = () => {
           </div>
           <div className="mt-4 flex items-baseline justify-between">
             <div>
-              <span className="text-3xl font-extrabold text-white tracking-tight">
-                {urgentTasks.length}
-              </span>
+              <AnimatedCounter
+                value={urgentTasks.length}
+                className="text-3xl font-extrabold text-white tracking-tight"
+              />
               <span className="text-xs text-slate-400 ml-2">high priority</span>
             </div>
             {urgentTasks.length > 0 ? (
@@ -217,8 +268,8 @@ export const DashboardView: React.FC = () => {
           <p className="text-[11px] text-slate-400 mt-3 truncate">
             {urgentTasks.length > 0 ? urgentTasks[0].title : 'Zero blocking critical bugs'}
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Bento Middle Row: Upcoming Deadlines + Workload Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -247,8 +298,10 @@ export const DashboardView: React.FC = () => {
                 const assignee = users.find((u) => u.id === task.assigneeId)
                 const overdue = isOverdue(task.dueDate, task.status)
                 return (
-                  <div
+                  <motion.div
                     key={task.id}
+                    variants={staggerItem}
+                    whileHover={{ x: 3, transition: snappySpring }}
                     onClick={() => setSelectedTaskId(task.id)}
                     className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all"
                   >
@@ -286,7 +339,7 @@ export const DashboardView: React.FC = () => {
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })
             )}
@@ -422,6 +475,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

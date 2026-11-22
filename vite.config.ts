@@ -8,6 +8,17 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/framer-motion')) return 'motion'
+          if (id.includes('node_modules/lucide-react')) return 'lucide'
+          if (id.includes('node_modules/react')) return 'vendor'
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
