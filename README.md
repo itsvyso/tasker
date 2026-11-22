@@ -38,6 +38,33 @@ A project and task management system built with React 19, TypeScript, Vite, and 
    - `ESC`: Dismiss any modal or slide-over drawer.
    - `localStorage` persistence with one-click **"Reset Demo State"** button.
 
+## 🌐 Multi-Platform Ecosystem: Cloud, iOS & Desktop
+
+### 1. Supabase Cloud & Team Collaboration (Free Tier Ready)
+- **Zero-Config Offline-First**: Tasker functions out of the box with zero external setup using local persistence.
+- **Connect Team Cloud**:
+  1. Create a free project on [Supabase](https://supabase.com).
+  2. Run the migration script in `supabase/schema.sql` via the Supabase SQL Editor.
+  3. Copy your project credentials into `.env`:
+     ```env
+     VITE_SUPABASE_URL=https://your-project-id.supabase.co
+     VITE_SUPABASE_ANON_KEY=your-anon-public-key
+     ```
+  4. Launch the app. Tasker automatically synchronizes workspace data with Row Level Security (RLS) multi-tenancy and Supabase Realtime subscriptions.
+
+### 2. iOS & Mobile PWA
+- Progressive Web App configured via `vite-plugin-pwa` with offline service worker caching and `#08080B` theme color.
+- **Install on iOS**:
+  1. Open Tasker in Safari.
+  2. Tap the Share button (`⬆`).
+  3. Select **"Add to Home Screen"**.
+  4. Launches in full-screen standalone mode with native app performance.
+
+### 3. Desktop Application (Tauri v2) & Auto-Updater
+- Cross-platform native desktop app for Windows (`.exe` / `.msi`) and macOS (`.dmg`).
+- Integrated `@tauri-apps/plugin-updater` checking GitHub Releases for cryptographic updates.
+- Automated CI/CD workflow defined in `.github/workflows/release.yml`.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -47,7 +74,7 @@ A project and task management system built with React 19, TypeScript, Vite, and 
 - **Vite 8** + **@tailwindcss/vite**
 - **Lucide React** (icons)
 - **Canvas-Confetti** (celebration physics)
-- **Vitest** + **@testing-library/react** (27 unit & integration tests)
+- **Vitest** + **@testing-library/react** (94 unit & integration tests)
 
 ---
 

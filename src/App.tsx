@@ -15,6 +15,8 @@ import { TaskDetailDrawer } from './components/tasks/TaskDetailDrawer'
 import { CreateTaskModal } from './components/tasks/CreateTaskModal'
 import { CreateProjectModal } from './components/tasks/CreateProjectModal'
 import { CommandPalette } from './components/common/CommandPalette'
+import { AuthModal } from './components/modals/AuthModal'
+import { TeamInviteModal } from './components/modals/TeamInviteModal'
 
 const MainContent: React.FC = () => {
   const { activeView, isSidebarCollapsed } = useTaskContext()
@@ -78,6 +80,8 @@ const MainContent: React.FC = () => {
       <CreateTaskModal />
       <CreateProjectModal />
       <CommandPalette />
+      <AuthModal />
+      <TeamInviteModal />
     </div>
   )
 }

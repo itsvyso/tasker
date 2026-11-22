@@ -21,6 +21,32 @@ import {
   INITIAL_ROUTINES,
 } from '../mock/initialData'
 import { triggerConfetti } from '../utils/confetti'
+import {
+  getSupabaseClient,
+  isSupabaseConfigured,
+  type SyncStatus,
+  type SupabaseAuthUser,
+} from '../lib/supabase'
+import {
+  mapTaskFromDb,
+  mapTaskToDb,
+  mapProjectFromDb,
+  mapProjectToDb,
+  mapRoutineFromDb,
+  mapRoutineToDb,
+  mapChatMessageFromDb,
+  mapChatMessageToDb,
+  type DbTaskRow,
+  type DbProjectRow,
+  type DbRoutineRow,
+  type DbChatMessageRow,
+} from '../lib/syncMappers'
+import {
+  isTauriDesktop,
+  checkDesktopUpdates,
+  installDesktopUpdate,
+  type DesktopUpdateInfo,
+} from '../lib/desktopUpdater'
 
 interface TaskContextType {
   currentUser: User
@@ -43,7 +69,28 @@ interface TaskContextType {
   activities: Activity[]
   chatMessages: ChatMessage[]
   routines: RoutineItem[]
-  
+
+  // Cloud & Auth State
+  syncStatus: SyncStatus
+  isCloudEnabled: boolean
+  authUser: SupabaseAuthUser | null
+  isAuthModalOpen: boolean
+  setIsAuthModalOpen: (open: boolean) => void
+  isTeamModalOpen: boolean
+  setIsTeamModalOpen: (open: boolean) => void
+  signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>
+  signUpWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>
+  signOut: () => Promise<void>
+  syncNow: () => Promise<void>
+
+  // Desktop Auto-Updater
+  isDesktop: boolean
+  desktopUpdateInfo: DesktopUpdateInfo | null
+  isCheckingUpdate: boolean
+  isInstallingUpdate: boolean
+  checkForUpdates: () => Promise<DesktopUpdateInfo>
+  installUpdate: () => Promise<boolean>
+
   // Actions
   setActiveProjectId: (id: string) => void
   setActiveView: (view: ViewMode) => void
@@ -109,9 +156,51 @@ const STORAGE_KEYS = {
   ROUTINES: 'taske_routines_v1',
 }
 
+const safeSupabaseCall = (fn: () => PromiseLike<unknown>) => {
+  Promise.resolve()
+    .then(fn)
+    .catch((err) => {
+      console.warn('[Sync] Background sync call failed:', err)
+    })
+}
+
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser] = useState<User>(INITIAL_USERS[0])
   const [users] = useState<User[]>(INITIAL_USERS)
+
+  // Cloud & Auth State
+  const isCloudEnabled = isSupabaseConfigured()
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(isCloudEnabled ? 'connecting' : 'offline')
+  const [authUser, setAuthUser] = useState<SupabaseAuthUser | null>(null)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false)
+
+  // Desktop Auto-Updater
+  const isDesktop = isTauriDesktop()
+  const [desktopUpdateInfo, setDesktopUpdateInfo] = useState<DesktopUpdateInfo | null>(null)
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false)
+  const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
+
+  const checkForUpdates = useCallback(async (): Promise<DesktopUpdateInfo> => {
+    setIsCheckingUpdate(true)
+    try {
+      const info = await checkDesktopUpdates()
+      setDesktopUpdateInfo(info)
+      return info
+    } finally {
+      setIsCheckingUpdate(false)
+    }
+  }, [])
+
+  const installUpdate = useCallback(async (): Promise<boolean> => {
+    setIsInstallingUpdate(true)
+    try {
+      const success = await installDesktopUpdate()
+      return success
+    } finally {
+      setIsInstallingUpdate(false)
+    }
+  }, [])
 
   // Projects state
   const [projects, setProjects] = useState<Project[]>(() => {
@@ -131,7 +220,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeProjectId, setActiveProjectIdState] = useState<string>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_PROJECT)
-      if (saved && projects.some(p => p.id === saved)) return saved
+      if (saved && projects.some((p) => p.id === saved)) return saved
       return projects[0]?.id || 'proj-1'
     } catch {
       return 'proj-1'
@@ -257,6 +346,216 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('LocalStorage error:', e)
     }
   }, [routines])
+
+  // Remote Supabase initial sync & real-time subscriptions
+  const syncNow = useCallback(async () => {
+    const client = getSupabaseClient()
+    if (!client) {
+      setSyncStatus('offline')
+      return
+    }
+
+    setSyncStatus('syncing')
+    try {
+      const [projRes, tasksRes, routinesRes, chatRes] = await Promise.all([
+        client.from('projects').select('*'),
+        client.from('tasks').select('*'),
+        client.from('routines').select('*'),
+        client.from('chat_messages').select('*').order('created_at', { ascending: true }),
+      ])
+
+      const remoteProjects = (projRes.data || []) as DbProjectRow[]
+      const remoteTasks = (tasksRes.data || []) as DbTaskRow[]
+      const remoteRoutines = (routinesRes.data || []) as DbRoutineRow[]
+      const remoteChat = (chatRes.data || []) as DbChatMessageRow[]
+
+      // If remote project table is empty, seed local projects and tasks to cloud
+      if (remoteProjects.length === 0 && projects.length > 0) {
+        await client.from('projects').insert(projects.map((p) => mapProjectToDb(p)))
+        if (tasks.length > 0) {
+          await client.from('tasks').insert(tasks.map((t) => mapTaskToDb(t)))
+        }
+        if (routines.length > 0) {
+          await client.from('routines').insert(routines.map((r) => mapRoutineToDb(r)))
+        }
+        if (chatMessages.length > 0) {
+          await client.from('chat_messages').insert(chatMessages.map((m) => mapChatMessageToDb(m)))
+        }
+      } else {
+        if (remoteProjects.length > 0) {
+          const mappedProjects = remoteProjects.map(mapProjectFromDb)
+          setProjects(mappedProjects)
+
+          setActiveProjectIdState((curr) => {
+            if (!mappedProjects.some((p) => p.id === curr)) {
+              const fallback = mappedProjects[0].id
+              try {
+                localStorage.setItem(STORAGE_KEYS.ACTIVE_PROJECT, fallback)
+              } catch {
+                // ignore
+              }
+              return fallback
+            }
+            return curr
+          })
+        }
+
+        if (remoteTasks.length > 0) {
+          setTasks(remoteTasks.map(mapTaskFromDb))
+        }
+
+        if (remoteRoutines.length > 0) {
+          setRoutines(remoteRoutines.map(mapRoutineFromDb))
+        }
+
+        if (remoteChat.length > 0) {
+          setChatMessages(remoteChat.map(mapChatMessageFromDb))
+        }
+      }
+
+      setSyncStatus('synced')
+    } catch (err) {
+      console.warn('[Sync] Failed remote pull/seed:', err)
+      setSyncStatus('error')
+    }
+  }, [projects, tasks, routines, chatMessages])
+
+  useEffect(() => {
+    const client = getSupabaseClient()
+    if (!client) {
+      return
+    }
+
+    // Check auth session
+    client.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user || null)
+    })
+
+    const { data: authListener } = client.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user || null)
+    })
+
+    // Pull initial remote state
+    const syncTimer = setTimeout(() => {
+      void syncNow()
+    }, 0)
+
+    // Realtime channel
+    const channel = client
+      .channel('tasker_realtime_sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newTask = mapTaskFromDb(payload.new as DbTaskRow)
+            setTasks((prev) => (prev.some((t) => t.id === newTask.id) ? prev : [newTask, ...prev]))
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = mapTaskFromDb(payload.new as DbTaskRow)
+            setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id?: string })?.id
+            if (deletedId) {
+              setTasks((prev) => prev.filter((t) => t.id !== deletedId))
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'projects' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newProj = mapProjectFromDb(payload.new as DbProjectRow)
+            setProjects((prev) => (prev.some((p) => p.id === newProj.id) ? prev : [...prev, newProj]))
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = mapProjectFromDb(payload.new as DbProjectRow)
+            setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id?: string })?.id
+            if (deletedId) {
+              setProjects((prev) => prev.filter((p) => p.id !== deletedId))
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'routines' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newRoutine = mapRoutineFromDb(payload.new as DbRoutineRow)
+            setRoutines((prev) => (prev.some((r) => r.id === newRoutine.id) ? prev : [newRoutine, ...prev]))
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = mapRoutineFromDb(payload.new as DbRoutineRow)
+            setRoutines((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id?: string })?.id
+            if (deletedId) {
+              setRoutines((prev) => prev.filter((r) => r.id !== deletedId))
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_messages' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newMsg = mapChatMessageFromDb(payload.new as DbChatMessageRow)
+            setChatMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]))
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as { id?: string })?.id
+            if (deletedId) {
+              setChatMessages((prev) => prev.filter((m) => m.id !== deletedId))
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setSyncStatus('synced')
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setSyncStatus('error')
+        }
+      })
+
+    return () => {
+      clearTimeout(syncTimer)
+      authListener.subscription.unsubscribe()
+      client.removeChannel(channel)
+    }
+  }, [syncNow])
+
+  const signInWithEmail = useCallback(async (email: string, pass: string) => {
+    const client = getSupabaseClient()
+    if (!client) {
+      return { error: new Error('Supabase is not configured.') }
+    }
+    const { error } = await client.auth.signInWithPassword({ email, password: pass })
+    if (!error) {
+      syncNow()
+    }
+    return { error: error ? new Error(error.message) : null }
+  }, [syncNow])
+
+  const signUpWithEmail = useCallback(async (email: string, pass: string) => {
+    const client = getSupabaseClient()
+    if (!client) {
+      return { error: new Error('Supabase is not configured.') }
+    }
+    const { error } = await client.auth.signUp({ email, password: pass })
+    return { error: error ? new Error(error.message) : null }
+  }, [])
+
+  const signOut = useCallback(async () => {
+    const client = getSupabaseClient()
+    if (client) {
+      await client.auth.signOut()
+    }
+    setAuthUser(null)
+    setSyncStatus('offline')
+  }, [])
 
   const setActiveProjectId = useCallback((id: string) => {
     setActiveProjectIdState(id)
@@ -405,10 +704,18 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setTasks((prev) => [newTask, ...prev])
     logActivity('created task', newTask.title, newTask.id)
+
+    // Remote sync
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() => client.from('tasks').insert(mapTaskToDb(newTask)))
+    }
+
     return newTask
   }, [activeProjectId, projects, activeProject, currentUser.id, logActivity])
 
   const updateTask = useCallback((taskId: string, updates: Partial<Task>) => {
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -417,11 +724,18 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...updates,
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
           return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const deleteTask = useCallback((taskId: string) => {
@@ -433,12 +747,18 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (task) {
       logActivity('deleted task', task.title)
     }
+
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() => client.from('tasks').delete().eq('id', taskId))
+    }
   }, [tasks, selectedTaskId, logActivity])
 
   const moveTaskStatus = useCallback((taskId: string, newStatus: Status) => {
     const task = tasks.find((t) => t.id === taskId)
     if (!task) return
 
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -446,11 +766,13 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (newStatus === 'done' && t.status !== 'done') {
             triggerConfetti()
           }
-          return {
+          const updated = {
             ...t,
             status: newStatus,
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
@@ -465,9 +787,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       logActivity(`moved to ${statusLabels[newStatus]}`, task.title, taskId)
     }
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [tasks, logActivity])
 
   const toggleSubtask = useCallback((taskId: string, subtaskId: string) => {
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -482,15 +811,23 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return s
           })
-          return {
+          const updated = {
             ...t,
             subtasks: updatedSubtasks,
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const addSubtask = useCallback((taskId: string, title: string) => {
@@ -500,33 +837,51 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: title.trim(),
       completed: false,
     }
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          return {
+          const updated = {
             ...t,
             subtasks: [...t.subtasks, newSub],
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const deleteSubtask = useCallback((taskId: string, subtaskId: string) => {
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          return {
+          const updated = {
             ...t,
             subtasks: t.subtasks.filter((s) => s.id !== subtaskId),
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const addComment = useCallback((taskId: string, content: string) => {
@@ -538,14 +893,17 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       createdAt: new Date().toISOString(),
       likes: 0,
     }
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          return {
+          const updated = {
             ...t,
             comments: [...t.comments, newComm],
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
@@ -554,23 +912,38 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (task) {
       logActivity('commented on', task.title, taskId)
     }
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [currentUser.id, tasks, logActivity])
 
   const likeComment = useCallback((taskId: string, commentId: string) => {
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          return {
+          const updated = {
             ...t,
             comments: t.comments.map((c) =>
               c.id === commentId ? { ...c, likes: c.likes + 1 } : c
             ),
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const addAttachment = useCallback((taskId: string, file: { name: string; size: string; type: string }) => {
@@ -581,33 +954,51 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       type: file.type,
       uploadedAt: new Date().toISOString().split('T')[0],
     }
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          return {
+          const updated = {
             ...t,
             attachments: [...t.attachments, newAtt],
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const deleteAttachment = useCallback((taskId: string, attachmentId: string) => {
+    let updatedTask: Task | null = null
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          return {
+          const updated = {
             ...t,
             attachments: t.attachments.filter((a) => a.id !== attachmentId),
             updatedAt: new Date().toISOString(),
           }
+          updatedTask = updated
+          return updated
         }
         return t
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedTask) {
+      const payload = mapTaskToDb(updatedTask)
+      safeSupabaseCall(() => client.from('tasks').update(payload).eq('id', taskId))
+    }
   }, [])
 
   const sendChatMessage = useCallback((content: string) => {
@@ -620,6 +1011,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
     setChatMessages((prev) => [...prev, newMsg])
+
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() => client.from('chat_messages').insert(mapChatMessageToDb(newMsg)))
+    }
   }, [activeProjectId, currentUser.id])
 
   const createProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt'>): Project => {
@@ -631,6 +1027,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProjects((prev) => [...prev, newProj])
     setActiveProjectIdState(newProj.id)
     logActivity('created project', newProj.name)
+
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() => client.from('projects').insert(mapProjectToDb(newProj)))
+    }
+
     return newProj
   }, [logActivity])
 
@@ -644,9 +1046,15 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return remaining
     })
     setTasks((prev) => prev.filter((t) => t.projectId !== projectId))
+
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() => client.from('projects').delete().eq('id', projectId))
+    }
   }, [activeProjectId])
 
   const toggleRoutineToday = useCallback((routineId: string) => {
+    let updatedRoutine: RoutineItem | null = null
     setRoutines((prev) =>
       prev.map((r) => {
         if (r.id !== routineId) return r
@@ -660,14 +1068,22 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (nextCompleted) {
           triggerConfetti()
         }
-        return {
+        const updated = {
           ...r,
           completedToday: nextCompleted,
           streak: nextStreak,
           history: updatedHistory,
         }
+        updatedRoutine = updated
+        return updated
       })
     )
+
+    const client = getSupabaseClient()
+    if (client && updatedRoutine) {
+      const payload = mapRoutineToDb(updatedRoutine)
+      safeSupabaseCall(() => client.from('routines').update(payload).eq('id', routineId))
+    }
   }, [])
 
   const addRoutine = useCallback(
@@ -688,6 +1104,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         color: routineData.color || '#A855F7',
       }
       setRoutines((prev) => [newRoutine, ...prev])
+
+      const client = getSupabaseClient()
+      if (client) {
+        safeSupabaseCall(() => client.from('routines').insert(mapRoutineToDb(newRoutine)))
+      }
+
       return newRoutine
     },
     []
@@ -695,6 +1117,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteRoutine = useCallback((routineId: string) => {
     setRoutines((prev) => prev.filter((r) => r.id !== routineId))
+
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() => client.from('routines').delete().eq('id', routineId))
+    }
   }, [])
 
   const resetRoutinesToDefault = useCallback(() => {
@@ -722,7 +1149,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSelectedTaskId(null)
   }, [])
 
-  // Keyboard shortcut listener: Cmd/Ctrl+K for search, C for create task, 1-6 for view switching
+  // Keyboard shortcut listener: Cmd/Ctrl+K for search, C for create task, 1-7 for view switching
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if user is actively typing in an input or textarea
@@ -763,6 +1190,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsCreateTaskModalOpen(false)
         setIsCreateProjectModalOpen(false)
         setSelectedTaskId(null)
+        setIsAuthModalOpen(false)
+        setIsTeamModalOpen(false)
       }
     }
 
@@ -792,6 +1221,28 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     chatMessages,
     routines,
 
+    // Cloud & Auth
+    syncStatus,
+    isCloudEnabled,
+    authUser,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    isTeamModalOpen,
+    setIsTeamModalOpen,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut,
+    syncNow,
+
+    // Desktop Auto-Updater
+    isDesktop,
+    desktopUpdateInfo,
+    isCheckingUpdate,
+    isInstallingUpdate,
+    checkForUpdates,
+    installUpdate,
+
+    // Actions
     setActiveProjectId,
     setActiveView,
     setSelectedTaskId,
@@ -826,6 +1277,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>
 }
 
+// oxlint-disable-next-line react/only-export-components
 export const useTaskContext = () => {
   const context = useContext(TaskContext)
   if (!context) {

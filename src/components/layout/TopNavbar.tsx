@@ -9,6 +9,8 @@ import {
   X,
   Clock,
   FolderPlus,
+  Cloud,
+  Users as UsersIcon,
 } from 'lucide-react'
 
 export const TopNavbar: React.FC = () => {
@@ -27,6 +29,11 @@ export const TopNavbar: React.FC = () => {
     users,
     tasks,
     activities,
+    syncStatus,
+    isCloudEnabled,
+    authUser,
+    setIsAuthModalOpen,
+    setIsTeamModalOpen,
   } = useTaskContext()
 
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
@@ -266,6 +273,41 @@ export const TopNavbar: React.FC = () => {
           )}
         </div>
 
+        {/* Cloud Sync & Auth Button */}
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          title="Cloud Sync & Auth Settings"
+          data-testid="navbar-cloud-btn"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs"
+        >
+          <Cloud className="w-3.5 h-3.5 text-purple-400" />
+          <span className="hidden sm:inline font-medium">
+            {authUser ? authUser.email?.split('@')[0] : syncStatus === 'synced' ? 'Cloud Synced' : isCloudEnabled ? 'Cloud' : 'Offline'}
+          </span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              syncStatus === 'synced'
+                ? 'bg-emerald-400'
+                : syncStatus === 'syncing'
+                ? 'bg-amber-400 animate-pulse'
+                : isCloudEnabled
+                ? 'bg-indigo-400'
+                : 'bg-slate-400'
+            }`}
+          />
+        </button>
+
+        {/* Team Collaboration Button */}
+        <button
+          onClick={() => setIsTeamModalOpen(true)}
+          title="Manage Team Members"
+          data-testid="navbar-team-btn"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs"
+        >
+          <UsersIcon className="w-3.5 h-3.5 text-purple-400" />
+          <span className="hidden md:inline font-medium">Team</span>
+        </button>
+
         {/* Notifications Popover */}
         <div className="relative">
           <button
@@ -320,7 +362,11 @@ export const TopNavbar: React.FC = () => {
         </div>
 
         {/* User Profile Pill */}
-        <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          title="User Profile & Cloud Settings"
+          className="flex items-center gap-2 pl-2 border-l border-slate-800 hover:opacity-80 transition-opacity"
+        >
           <Avatar user={currentUser} size="sm" showStatus={true} />
           <div className="hidden lg:flex flex-col text-left">
             <span className="text-xs font-semibold text-slate-200 leading-tight">
@@ -330,7 +376,7 @@ export const TopNavbar: React.FC = () => {
               {currentUser.role}
             </span>
           </div>
-        </div>
+        </button>
       </div>
     </header>
   )

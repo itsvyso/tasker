@@ -1,0 +1,29 @@
+{
+  "name": "Tasker Pro",
+  "short_name": "Tasker",
+  "description": "Next-Gen Workspace & Real-time Task Management",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08080B",
+  "theme_color": "#08080B",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
