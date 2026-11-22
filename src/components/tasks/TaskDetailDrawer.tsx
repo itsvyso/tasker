@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useTaskContext } from '../../context/TaskContext'
 import type { Status, Priority } from '../../types'
 import { Avatar } from '../common/Avatar'
@@ -11,6 +11,8 @@ import {
   Paperclip,
   MessageSquare,
   Send,
+  Heart,
+  Upload,
 } from 'lucide-react'
 
 export const TaskDetailDrawer: React.FC = () => {
@@ -24,7 +26,9 @@ export const TaskDetailDrawer: React.FC = () => {
     addSubtask,
     deleteSubtask,
     addComment,
+    likeComment,
     addAttachment,
+    deleteAttachment,
     users,
     projects,
   } = useTaskContext()
@@ -33,6 +37,7 @@ export const TaskDetailDrawer: React.FC = () => {
   const [newCommentText, setNewCommentText] = useState('')
   const [newTagInput, setNewTagInput] = useState('')
   const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'attachments'>('details')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!selectedTask) return null
 
@@ -72,14 +77,25 @@ export const TaskDetailDrawer: React.FC = () => {
     })
   }
 
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const sizeStr = file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.round(file.size / 1024)} KB`
+      addAttachment(selectedTask.id, {
+        name: file.name,
+        size: sizeStr,
+        type: file.type.split('/')[1] || 'file',
+      })
+      e.target.value = ''
+    }
+  }
+
   const handleSimulatedFileUpload = () => {
-    const mockFiles = [
-      { name: 'technical_architecture_v2.png', size: '1.4 MB', type: 'image' },
-      { name: 'api_endpoints_schema.json', size: '64 KB', type: 'json' },
-      { name: 'wireframe_handoff.pdf', size: '3.8 MB', type: 'pdf' },
-    ]
-    const randomFile = mockFiles[Math.floor(Math.random() * mockFiles.length)]
-    addAttachment(selectedTask.id, randomFile)
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
   }
 
   return (
@@ -240,9 +256,10 @@ export const TaskDetailDrawer: React.FC = () => {
                     <label className="text-[11px] text-slate-400 block mb-1.5">Est. Hours</label>
                     <input
                       type="number"
+                      min={0}
                       value={selectedTask.estimatedHours}
                       onChange={(e) =>
-                        updateTask(selectedTask.id, { estimatedHours: Number(e.target.value) })
+                        updateTask(selectedTask.id, { estimatedHours: Math.max(0, Number(e.target.value)) })
                       }
                       className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
                     />
@@ -252,9 +269,10 @@ export const TaskDetailDrawer: React.FC = () => {
                     <label className="text-[11px] text-slate-400 block mb-1.5">Logged Hours</label>
                     <input
                       type="number"
+                      min={0}
                       value={selectedTask.loggedHours}
                       onChange={(e) =>
-                        updateTask(selectedTask.id, { loggedHours: Number(e.target.value) })
+                        updateTask(selectedTask.id, { loggedHours: Math.max(0, Number(e.target.value)) })
                       }
                       className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-indigo-500"
                     />
@@ -405,9 +423,19 @@ export const TaskDetailDrawer: React.FC = () => {
                                 {author?.name || 'Team Member'}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400">
-                              {new Date(comm.createdAt).toLocaleDateString()}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => likeComment(selectedTask.id, comm.id)}
+                                title="Like this comment"
+                                className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 bg-slate-800/60 hover:bg-rose-500/10 px-2 py-0.5 rounded transition-colors"
+                              >
+                                <Heart className={`w-3 h-3 ${comm.likes > 0 ? 'fill-rose-400 text-rose-400' : ''}`} />
+                                <span>{comm.likes}</span>
+                              </button>
+                              <span className="text-[10px] text-slate-400">
+                                {new Date(comm.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                           <p className="text-slate-300 leading-relaxed pl-8">
                             {comm.content}
@@ -442,34 +470,58 @@ export const TaskDetailDrawer: React.FC = () => {
 
             {activeTab === 'attachments' && (
               <div className="space-y-4">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-400 font-medium">Uploaded Assets</span>
-                  <button
-                    onClick={handleSimulatedFileUpload}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-medium transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Attach File
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSimulatedFileUpload}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-medium transition-colors"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Upload File
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {selectedTask.attachments.map((att) => (
-                    <div
-                      key={att.id}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-[#090D18] border border-slate-800 text-xs hover:border-slate-700 transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
-                        <Paperclip className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium text-slate-200 truncate">{att.name}</div>
-                        <div className="text-[10px] text-slate-400">
-                          {att.size} • {att.uploadedAt}
-                        </div>
-                      </div>
+                  {selectedTask.attachments.length === 0 ? (
+                    <div className="col-span-2 py-8 text-center text-xs text-slate-400">
+                      No attachments uploaded for this task.
                     </div>
-                  ))}
+                  ) : (
+                    selectedTask.attachments.map((att) => (
+                      <div
+                        key={att.id}
+                        className="group flex items-center justify-between p-3 rounded-xl bg-[#090D18] border border-slate-800 text-xs hover:border-slate-700 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                            <Paperclip className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-slate-200 truncate">{att.name}</div>
+                            <div className="text-[10px] text-slate-400">
+                              {att.size} • {att.uploadedAt}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => deleteAttachment(selectedTask.id, att.id)}
+                          title="Delete attachment"
+                          className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-all ml-2"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

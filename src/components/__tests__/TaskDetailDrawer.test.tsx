@@ -64,4 +64,33 @@ describe('TaskDetailDrawer Component', () => {
 
     expect(screen.getByText('This design matches Taske beautifully!')).toBeInTheDocument()
   })
+
+  it('allows liking comments and deleting attachments', () => {
+    render(
+      <TaskProvider>
+        <DrawerTester />
+      </TaskProvider>
+    )
+
+    // Switch to Discussion tab
+    const discussionTab = screen.getByRole('button', { name: /Discussion/i })
+    fireEvent.click(discussionTab)
+
+    // Find like button
+    const likeButtons = screen.getAllByTitle('Like this comment')
+    expect(likeButtons.length).toBeGreaterThan(0)
+    const initialLikes = Number(likeButtons[0].textContent)
+    fireEvent.click(likeButtons[0])
+    expect(Number(likeButtons[0].textContent)).toBe(initialLikes + 1)
+
+    // Switch to Files tab
+    const filesTab = screen.getByRole('button', { name: /Files/i })
+    fireEvent.click(filesTab)
+
+    expect(screen.getByText('bento_grid_spec_v2.fig')).toBeInTheDocument()
+    const deleteButtons = screen.getAllByTitle('Delete attachment')
+    expect(deleteButtons.length).toBeGreaterThan(0)
+    fireEvent.click(deleteButtons[0])
+    expect(screen.queryByText('bento_grid_spec_v2.fig')).not.toBeInTheDocument()
+  })
 })

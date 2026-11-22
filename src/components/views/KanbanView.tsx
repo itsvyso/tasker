@@ -6,7 +6,7 @@ import { getStatusInfo } from '../../utils/formatters'
 import { Plus } from 'lucide-react'
 
 export const KanbanView: React.FC = () => {
-  const { filteredTasks, moveTaskStatus, setIsCreateTaskModalOpen } = useTaskContext()
+  const { filteredTasks, moveTaskStatus, openCreateTaskModal } = useTaskContext()
   const [dragOverColumn, setDragOverColumn] = useState<Status | null>(null)
 
   const columns: { status: Status; title: string }[] = [
@@ -24,8 +24,10 @@ export const KanbanView: React.FC = () => {
     }
   }
 
-  const handleDragLeave = () => {
-    setDragOverColumn(null)
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverColumn(null)
+    }
   }
 
   const handleDrop = (e: React.DragEvent, status: Status) => {
@@ -70,8 +72,8 @@ export const KanbanView: React.FC = () => {
 
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setIsCreateTaskModalOpen(true)}
-                  title="Add Task to this column"
+                  onClick={() => openCreateTaskModal({ status })}
+                  title={`Add Task to ${title}`}
                   className="p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />

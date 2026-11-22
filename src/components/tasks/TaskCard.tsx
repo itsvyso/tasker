@@ -17,7 +17,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-  const { setSelectedTaskId, users } = useTaskContext()
+  const { setSelectedTaskId, users, setFilters, filters } = useTaskContext()
 
   const assignee = users.find((u) => u.id === task.assigneeId)
   const completedSubtasks = task.subtasks.filter((s) => s.completed).length
@@ -62,7 +62,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       {task.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {task.tags.slice(0, 3).map((tag) => (
-            <TagBadge key={tag} tag={tag} />
+            <TagBadge
+              key={tag}
+              tag={tag}
+              onClick={(e) => {
+                e.stopPropagation()
+                setFilters({ tag: filters.tag === tag ? 'all' : tag })
+              }}
+            />
           ))}
           {task.tags.length > 3 && (
             <span className="text-[10px] text-slate-400 self-center">

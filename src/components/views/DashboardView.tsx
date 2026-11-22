@@ -25,9 +25,10 @@ export const DashboardView: React.FC = () => {
     users,
     activities,
     setSelectedTaskId,
-    setIsCreateTaskModalOpen,
+    openCreateTaskModal,
     setActiveView,
     moveTaskStatus,
+    setFilters,
   } = useTaskContext()
 
   const totalTasks = projectTasks.length
@@ -79,7 +80,7 @@ export const DashboardView: React.FC = () => {
               Open Kanban
             </button>
             <button
-              onClick={() => setIsCreateTaskModalOpen(true)}
+              onClick={() => openCreateTaskModal()}
               className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/30"
             >
               <Plus className="w-4 h-4" />
@@ -178,7 +179,18 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Metric Card 4: Urgent Blockers */}
-        <div className="p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all">
+        <div
+          onClick={() => {
+            if (urgentTasks.length > 0) {
+              setFilters({ priority: 'urgent' })
+              setActiveView('table')
+            }
+          }}
+          className={`p-5 rounded-2xl bg-[#0E1424] border border-slate-800/90 shadow-md flex flex-col justify-between hover:border-slate-700/80 transition-all ${
+            urgentTasks.length > 0 ? 'cursor-pointer hover:border-rose-500/40' : ''
+          }`}
+          title={urgentTasks.length > 0 ? 'Click to view urgent tasks in table' : undefined}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400">Urgent Issues</span>
             <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
@@ -356,7 +368,12 @@ export const DashboardView: React.FC = () => {
               return (
                 <div
                   key={act.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/40 text-xs border border-slate-800/60"
+                  onClick={() => {
+                    if (act.taskId) setSelectedTaskId(act.taskId)
+                  }}
+                  className={`flex items-center justify-between p-2.5 rounded-xl bg-slate-900/40 text-xs border border-slate-800/60 transition-colors ${
+                    act.taskId ? 'cursor-pointer hover:bg-slate-800/60' : ''
+                  }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar user={user} size="xs" />

@@ -4,13 +4,15 @@ import { Avatar } from '../common/Avatar'
 import { Send, MessageSquare, Users } from 'lucide-react'
 
 export const TeamChatView: React.FC = () => {
-  const { chatMessages, sendChatMessage, users, currentUser, activeProject } = useTaskContext()
+  const { chatMessages, sendChatMessage, users, currentUser, activeProject, activeProjectId } = useTaskContext()
   const [inputText, setInputText] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const projectMessages = chatMessages.filter((m) => m.projectId === activeProjectId)
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatMessages])
+    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' })
+  }, [projectMessages])
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,41 +55,49 @@ export const TeamChatView: React.FC = () => {
 
         {/* Messages List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {chatMessages.map((msg) => {
-            const sender = users.find((u) => u.id === msg.senderId)
-            const isMe = msg.senderId === currentUser.id
+          {projectMessages.length === 0 ? (
+            <div className="py-20 text-center text-xs text-slate-400">
+              <MessageSquare className="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-60" />
+              <p className="font-semibold text-slate-300">No messages in #{activeProject.code.toLowerCase()} yet</p>
+              <p className="text-[11px] text-slate-500 mt-1">Start the conversation with your team below!</p>
+            </div>
+          ) : (
+            projectMessages.map((msg) => {
+              const sender = users.find((u) => u.id === msg.senderId)
+              const isMe = msg.senderId === currentUser.id
 
-            return (
-              <div
-                key={msg.id}
-                className={`flex items-start gap-3 text-xs ${isMe ? 'flex-row-reverse' : ''}`}
-              >
-                <Avatar user={sender} size="sm" showStatus={true} />
+              return (
                 <div
-                  className={`max-w-md space-y-1 ${
-                    isMe ? 'items-end text-right' : 'items-start text-left'
-                  }`}
+                  key={msg.id}
+                  className={`flex items-start gap-3 text-xs ${isMe ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className="flex items-center gap-2 px-1">
-                    <span className="font-semibold text-slate-200">
-                      {isMe ? 'You' : sender?.name || 'Member'}
-                    </span>
-                    <span className="text-[10px] text-slate-400">{msg.timestamp}</span>
-                  </div>
-
+                  <Avatar user={sender} size="sm" showStatus={true} />
                   <div
-                    className={`p-3 rounded-2xl leading-relaxed text-xs ${
-                      isMe
-                        ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-600/20'
-                        : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
+                    className={`max-w-md space-y-1 ${
+                      isMe ? 'items-end text-right' : 'items-start text-left'
                     }`}
                   >
-                    {msg.content}
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="font-semibold text-slate-200">
+                        {isMe ? 'You' : sender?.name || 'Member'}
+                      </span>
+                      <span className="text-[10px] text-slate-400">{msg.timestamp}</span>
+                    </div>
+
+                    <div
+                      className={`p-3 rounded-2xl leading-relaxed text-xs ${
+                        isMe
+                          ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-600/20'
+                          : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 

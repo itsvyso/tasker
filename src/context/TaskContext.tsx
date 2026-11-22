@@ -34,6 +34,8 @@ interface TaskContextType {
   selectedTask: Task | null
   filters: FilterOptions
   isCreateTaskModalOpen: boolean
+  createTaskModalDefaults: { status?: Status; dueDate?: string } | null
+  isCreateProjectModalOpen: boolean
   isCommandPaletteOpen: boolean
   isSidebarCollapsed: boolean
   activities: Activity[]
@@ -46,6 +48,8 @@ interface TaskContextType {
   setFilters: (filters: Partial<FilterOptions>) => void
   resetFilters: () => void
   setIsCreateTaskModalOpen: (open: boolean) => void
+  openCreateTaskModal: (defaults?: { status?: Status; dueDate?: string }) => void
+  setIsCreateProjectModalOpen: (open: boolean) => void
   setIsCommandPaletteOpen: (open: boolean) => void
   toggleSidebar: () => void
   createTask: (taskData: {
@@ -67,9 +71,12 @@ interface TaskContextType {
   addSubtask: (taskId: string, title: string) => void
   deleteSubtask: (taskId: string, subtaskId: string) => void
   addComment: (taskId: string, content: string) => void
+  likeComment: (taskId: string, commentId: string) => void
   addAttachment: (taskId: string, file: { name: string; size: string; type: string }) => void
+  deleteAttachment: (taskId: string, attachmentId: string) => void
   sendChatMessage: (content: string) => void
   createProject: (project: Omit<Project, 'id' | 'createdAt'>) => Project
+  deleteProject: (projectId: string) => void
   resetToMockData: () => void
 }
 
@@ -102,7 +109,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS)
-      return saved ? JSON.parse(saved) : INITIAL_PROJECTS
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+      return INITIAL_PROJECTS
     } catch {
       return INITIAL_PROJECTS
     }
@@ -123,7 +134,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TASKS)
-      return saved ? JSON.parse(saved) : INITIAL_TASKS
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+      return INITIAL_TASKS
     } catch {
       return INITIAL_TASKS
     }
@@ -143,7 +158,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activities, setActivities] = useState<Activity[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ACTIVITIES)
-      return saved ? JSON.parse(saved) : INITIAL_ACTIVITIES
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) return parsed
+      }
+      return INITIAL_ACTIVITIES
     } catch {
       return INITIAL_ACTIVITIES
     }
@@ -153,7 +172,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CHAT)
-      return saved ? JSON.parse(saved) : INITIAL_CHAT_MESSAGES
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) return parsed
+      }
+      return INITIAL_CHAT_MESSAGES
     } catch {
       return INITIAL_CHAT_MESSAGES
     }
@@ -162,8 +185,15 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [filters, setFiltersState] = useState<FilterOptions>(defaultFilters)
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false)
+  const [createTaskModalDefaults, setCreateTaskModalDefaults] = useState<{ status?: Status; dueDate?: string } | null>(null)
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+
+  const openCreateTaskModal = useCallback((defaults?: { status?: Status; dueDate?: string }) => {
+    setCreateTaskModalDefaults(defaults || null)
+    setIsCreateTaskModalOpen(true)
+  }, [])
 
   // Persist to localStorage
   useEffect(() => {
@@ -376,6 +406,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [tasks, selectedTaskId, logActivity])
 
   const moveTaskStatus = useCallback((taskId: string, newStatus: Status) => {
+    const task = tasks.find((t) => t.id === taskId)
+    if (!task) return
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -392,8 +425,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return t
       })
     )
-    const task = tasks.find((t) => t.id === taskId)
-    if (task) {
+
+    if (task.status !== newStatus) {
       const statusLabels: Record<Status, string> = {
         backlog: 'Backlog',
         in_progress: 'In Progress',
@@ -493,6 +526,23 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser.id, tasks, logActivity])
 
+  const likeComment = useCallback((taskId: string, commentId: string) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            comments: t.comments.map((c) =>
+              c.id === commentId ? { ...c, likes: c.likes + 1 } : c
+            ),
+            updatedAt: new Date().toISOString(),
+          }
+        }
+        return t
+      })
+    )
+  }, [])
+
   const addAttachment = useCallback((taskId: string, file: { name: string; size: string; type: string }) => {
     const newAtt: Attachment = {
       id: `att-${Date.now()}`,
@@ -507,6 +557,21 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return {
             ...t,
             attachments: [...t.attachments, newAtt],
+            updatedAt: new Date().toISOString(),
+          }
+        }
+        return t
+      })
+    )
+  }, [])
+
+  const deleteAttachment = useCallback((taskId: string, attachmentId: string) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            attachments: t.attachments.filter((a) => a.id !== attachmentId),
             updatedAt: new Date().toISOString(),
           }
         }
@@ -535,8 +600,21 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setProjects((prev) => [...prev, newProj])
     setActiveProjectIdState(newProj.id)
+    logActivity('created project', newProj.name)
     return newProj
-  }, [])
+  }, [logActivity])
+
+  const deleteProject = useCallback((projectId: string) => {
+    setProjects((prev) => {
+      const remaining = prev.filter((p) => p.id !== projectId)
+      if (remaining.length === 0) return INITIAL_PROJECTS
+      if (activeProjectId === projectId) {
+        setActiveProjectIdState(remaining[0].id)
+      }
+      return remaining
+    })
+    setTasks((prev) => prev.filter((t) => t.projectId !== projectId))
+  }, [activeProjectId])
 
   const resetToMockData = useCallback(() => {
     try {
@@ -557,7 +635,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSelectedTaskId(null)
   }, [])
 
-  // Keyboard shortcut listener: Cmd/Ctrl+K for search, C for create task
+  // Keyboard shortcut listener: Cmd/Ctrl+K for search, C for create task, 1-6 for view switching
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if user is actively typing in an input or textarea
@@ -571,17 +649,36 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsCommandPaletteOpen((prev) => !prev)
       } else if (e.key.toLowerCase() === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
-        setIsCreateTaskModalOpen(true)
+        openCreateTaskModal()
+      } else if (e.key === '1' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('dashboard')
+      } else if (e.key === '2' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('kanban')
+      } else if (e.key === '3' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('table')
+      } else if (e.key === '4' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('calendar')
+      } else if (e.key === '5' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('timeline')
+      } else if (e.key === '6' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setActiveView('team_chat')
       } else if (e.key === 'Escape') {
         setIsCommandPaletteOpen(false)
         setIsCreateTaskModalOpen(false)
+        setIsCreateProjectModalOpen(false)
         setSelectedTaskId(null)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [openCreateTaskModal, setActiveView])
 
   const value = {
     currentUser,
@@ -597,6 +694,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     selectedTask,
     filters,
     isCreateTaskModalOpen,
+    createTaskModalDefaults,
+    isCreateProjectModalOpen,
     isCommandPaletteOpen,
     isSidebarCollapsed,
     activities,
@@ -608,6 +707,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setFilters,
     resetFilters,
     setIsCreateTaskModalOpen,
+    openCreateTaskModal,
+    setIsCreateProjectModalOpen,
     setIsCommandPaletteOpen,
     toggleSidebar,
     createTask,
@@ -618,9 +719,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addSubtask,
     deleteSubtask,
     addComment,
+    likeComment,
     addAttachment,
+    deleteAttachment,
     sendChatMessage,
     createProject,
+    deleteProject,
     resetToMockData,
   }
 

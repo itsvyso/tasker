@@ -11,6 +11,7 @@ import { TimelineView } from './components/views/TimelineView'
 import { TeamChatView } from './components/views/TeamChatView'
 import { TaskDetailDrawer } from './components/tasks/TaskDetailDrawer'
 import { CreateTaskModal } from './components/tasks/CreateTaskModal'
+import { CreateProjectModal } from './components/tasks/CreateProjectModal'
 import { CommandPalette } from './components/common/CommandPalette'
 
 const MainContent: React.FC = () => {
@@ -41,8 +42,8 @@ const MainContent: React.FC = () => {
       <TopNavbar />
 
       <main
-        className={`flex-1 pt-20 px-6 pb-12 transition-all duration-300 ${
-          isSidebarCollapsed ? 'ml-16' : 'ml-64'
+        className={`flex-1 pt-20 px-3 sm:px-6 pb-12 transition-all duration-300 ${
+          isSidebarCollapsed ? 'ml-16' : 'ml-16 sm:ml-64'
         }`}
       >
         <div className="max-w-[1600px] mx-auto">
@@ -54,6 +55,7 @@ const MainContent: React.FC = () => {
       {/* Overlays & Drawers */}
       <TaskDetailDrawer />
       <CreateTaskModal />
+      <CreateProjectModal />
       <CommandPalette />
     </div>
   )

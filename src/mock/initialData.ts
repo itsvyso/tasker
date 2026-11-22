@@ -522,4 +522,48 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
     content: 'Amazing! Let us make sure we test the Dense Table sorting and calendar views next so everything stays in sync.',
     timestamp: '11:42 AM',
   },
+  // --- PROJECT 2: NEXUS FINTECH APP ---
+  {
+    id: 'chat-5',
+    projectId: 'proj-2',
+    senderId: 'user-5',
+    content: 'FaceID secure enclave tests passed on iOS 18 simulators with sub-200ms latency. Preparing cryptographic test suite.',
+    timestamp: '09:15 AM',
+  },
+  {
+    id: 'chat-6',
+    projectId: 'proj-2',
+    senderId: 'user-3',
+    content: 'WebSocket transaction streamer is ready. Live currency rates are piping through with 60fps chart rendering.',
+    timestamp: '09:40 AM',
+  },
+  {
+    id: 'chat-7',
+    projectId: 'proj-2',
+    senderId: 'user-4',
+    content: 'Reviewed the transfer confirmation drawer UX — looks super clean. Let us verify Android biometric prompt behavior next.',
+    timestamp: '10:05 AM',
+  },
+  // --- PROJECT 3: AI AUTOMATION ENGINE ---
+  {
+    id: 'chat-8',
+    projectId: 'proj-3',
+    senderId: 'user-3',
+    content: 'Topological sort runner for the DAG scheduler is online. Cycle detection works and handles up to 50 concurrent tasks.',
+    timestamp: '08:30 AM',
+  },
+  {
+    id: 'chat-9',
+    projectId: 'proj-3',
+    senderId: 'user-1',
+    content: 'Awesome progress David! I added the TTFT streaming gauge components to the Bento overview.',
+    timestamp: '09:02 AM',
+  },
+  {
+    id: 'chat-10',
+    projectId: 'proj-3',
+    senderId: 'user-5',
+    content: 'The 120 evaluation benchmarks finished running — zero drift detected on structured reasoning benchmarks.',
+    timestamp: '09:50 AM',
+  },
 ]

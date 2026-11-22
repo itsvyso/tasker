@@ -4,12 +4,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
+  Plus,
+  Check,
 } from 'lucide-react'
 
 export const CalendarView: React.FC = () => {
-  const { filteredTasks, setSelectedTaskId } = useTaskContext()
+  const { filteredTasks, setSelectedTaskId, openCreateTaskModal } = useTaskContext()
 
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1)) // Nov 2026 based on initial data
+  const [currentDate, setCurrentDate] = useState(() => new Date(2026, 10, 1))
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -28,23 +30,23 @@ export const CalendarView: React.FC = () => {
   }
 
   const goToToday = () => {
-    setCurrentDate(new Date(2026, 10, 22))
+    setCurrentDate(new Date())
   }
 
-  // Calculate calendar days
-  const firstDayIndex = new Date(year, month, 1).getDay()
+  const todayDateStr = React.useMemo(() => new Date().toISOString().split('T')[0], [])
+
+  // Calculate calendar days reliably using Date arithmetic
+  const firstDayOfMonth = new Date(year, month, 1)
+  const firstDayIndex = firstDayOfMonth.getDay() // 0 = Sun, 1 = Mon ...
   const totalDaysInMonth = new Date(year, month + 1, 0).getDate()
-  const prevMonthDays = new Date(year, month, 0).getDate()
 
   const days: { day: number; isCurrentMonth: boolean; dateStr: string }[] = []
 
   // Preceding month trailing days
   for (let i = firstDayIndex - 1; i >= 0; i--) {
-    const d = prevMonthDays - i
-    const m = month === 0 ? 12 : month
-    const y = month === 0 ? year - 1 : year
-    const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    days.push({ day: d, isCurrentMonth: false, dateStr })
+    const d = new Date(year, month, -i)
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    days.push({ day: d.getDate(), isCurrentMonth: false, dateStr })
   }
 
   // Current month days
@@ -56,10 +58,9 @@ export const CalendarView: React.FC = () => {
   // Trailing next month days to complete 35 or 42 grid cells
   const remainingDays = 42 - days.length
   for (let i = 1; i <= remainingDays; i++) {
-    const m = month === 11 ? 1 : month + 2
-    const y = month === 11 ? year + 1 : year
-    const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(i).padStart(2, '0')}`
-    days.push({ day: i, isCurrentMonth: false, dateStr })
+    const d = new Date(year, month + 1, i)
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    days.push({ day: d.getDate(), isCurrentMonth: false, dateStr })
   }
 
   const getTasksForDate = (dateStr: string) => {
@@ -124,12 +125,12 @@ export const CalendarView: React.FC = () => {
         <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-800/60 bg-[#0A0E1A]">
           {days.map(({ day, isCurrentMonth, dateStr }, index) => {
             const dayTasks = getTasksForDate(dateStr)
-            const isToday = dateStr === '2026-11-22'
+            const isToday = dateStr === todayDateStr
 
             return (
               <div
                 key={index}
-                className={`min-h-[110px] p-2 flex flex-col transition-colors ${
+                className={`group min-h-[110px] p-2 flex flex-col transition-colors relative ${
                   isCurrentMonth ? 'bg-[#0E1424]/90' : 'bg-[#0A0E1A]/40 opacity-40'
                 } hover:bg-slate-800/40`}
               >
@@ -146,36 +147,57 @@ export const CalendarView: React.FC = () => {
                   >
                     {day}
                   </span>
-                  {dayTasks.length > 0 && (
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-                    </span>
-                  )}
+
+                  <div className="flex items-center gap-1">
+                    {dayTasks.length > 0 && (
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => openCreateTaskModal({ dueDate: dateStr })}
+                      title={`Add task for ${dateStr}`}
+                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-400 hover:text-indigo-300 hover:bg-indigo-600/20 transition-all"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Tasks chips */}
                 <div className="space-y-1 flex-1 overflow-y-auto max-h-24">
-                  {dayTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      onClick={() => setSelectedTaskId(task.id)}
-                      className="px-2 py-1 rounded-md text-[11px] font-medium bg-[#131B32] hover:bg-indigo-600/30 border border-slate-700/60 hover:border-indigo-500/50 text-slate-200 cursor-pointer truncate transition-all flex items-center gap-1.5 shadow-sm"
-                      title={task.title}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                          task.priority === 'urgent'
-                            ? 'bg-rose-400'
-                            : task.priority === 'high'
-                            ? 'bg-amber-400'
-                            : task.priority === 'medium'
-                            ? 'bg-indigo-400'
-                            : 'bg-emerald-400'
+                  {dayTasks.map((task) => {
+                    const isDone = task.status === 'done'
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => setSelectedTaskId(task.id)}
+                        className={`px-2 py-1 rounded-md text-[11px] font-medium border text-slate-200 cursor-pointer truncate transition-all flex items-center gap-1.5 shadow-sm ${
+                          isDone
+                            ? 'bg-slate-900/60 border-slate-800 line-through text-slate-400 opacity-70'
+                            : 'bg-[#131B32] hover:bg-indigo-600/30 border-slate-700/60 hover:border-indigo-500/50'
                         }`}
-                      />
-                      <span className="truncate">{task.title}</span>
-                    </div>
-                  ))}
+                        title={`${task.taskCode}: ${task.title} (${task.status})`}
+                      >
+                        {isDone ? (
+                          <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                        ) : (
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              task.priority === 'urgent'
+                                ? 'bg-rose-400'
+                                : task.priority === 'high'
+                                ? 'bg-amber-400'
+                                : task.priority === 'medium'
+                                ? 'bg-indigo-400'
+                                : 'bg-emerald-400'
+                            }`}
+                          />
+                        )}
+                        <span className="truncate">{task.title}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )

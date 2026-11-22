@@ -57,7 +57,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, showIcon = tru
 interface TagBadgeProps {
   tag: string
   className?: string
-  onClick?: () => void
+  onClick?: (e: React.MouseEvent) => void
 }
 
 export const TagBadge: React.FC<TagBadgeProps> = ({ tag, className = '', onClick }) => {
@@ -67,7 +67,7 @@ export const TagBadge: React.FC<TagBadgeProps> = ({ tag, className = '', onClick
     <span
       onClick={onClick}
       className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${colorClass} ${
-        onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+        onClick ? 'cursor-pointer hover:brightness-125 transition-all' : ''
       } ${className}`}
     >
       #{tag}

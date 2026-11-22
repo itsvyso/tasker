@@ -1,20 +1,39 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTaskContext } from '../../context/TaskContext'
 import type { Task } from '../../types'
 import { Avatar } from '../common/Avatar'
-import { Clock } from 'lucide-react'
+import { Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const TimelineView: React.FC = () => {
   const { filteredTasks, setSelectedTaskId, users } = useTaskContext()
 
-  // Timeline range: 2026-11-15 to 2026-12-05 (21 days)
-  const startDate = new Date(2026, 10, 15) // Nov 15
+  // Dynamic timeline anchor date
+  const [startDate, setStartDate] = useState(() => new Date(2026, 10, 15))
   const totalDays = 21
+  const msPerDay = 1000 * 60 * 60 * 24
+
+  const endDate = new Date(startDate.getTime() + (totalDays - 1) * msPerDay)
+
+  const prevWeek = () => {
+    setStartDate((prev) => new Date(prev.getTime() - 7 * msPerDay))
+  }
+
+  const nextWeek = () => {
+    setStartDate((prev) => new Date(prev.getTime() + 7 * msPerDay))
+  }
+
+  const goToToday = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    // Anchor timeline with today around the first third of the view
+    setStartDate(new Date(today.getTime() - 4 * msPerDay))
+  }
+
+  const todayDateStr = React.useMemo(() => new Date().toISOString().split('T')[0], [])
 
   const timelineDays: { date: Date; dateStr: string; dayNum: number; dayName: string }[] = []
   for (let i = 0; i < totalDays; i++) {
-    const d = new Date(startDate)
-    d.setDate(startDate.getDate() + i)
+    const d = new Date(startDate.getTime() + i * msPerDay)
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
       d.getDate()
     ).padStart(2, '0')}`
@@ -34,11 +53,24 @@ export const TimelineView: React.FC = () => {
     const taskStart = new Date(sy, sm - 1, sd)
     const taskEnd = new Date(ey, em - 1, ed)
 
-    const msPerDay = 1000 * 60 * 60 * 24
-    const startOffsetDays = Math.max(0, Math.round((taskStart.getTime() - startDate.getTime()) / msPerDay))
-    const durationDays = Math.max(1, Math.round((taskEnd.getTime() - taskStart.getTime()) / msPerDay) + 1)
+    const windowStart = new Date(startDate)
+    windowStart.setHours(0, 0, 0, 0)
+    const windowEnd = new Date(endDate)
+    windowEnd.setHours(23, 59, 59, 999)
 
-    const leftPercent = Math.min(95, (startOffsetDays / totalDays) * 100)
+    // Check if task is outside the visible window
+    if (taskEnd.getTime() < windowStart.getTime() || taskStart.getTime() > windowEnd.getTime()) {
+      return { display: 'none' }
+    }
+
+    // Clip visible interval to current window
+    const visibleStart = Math.max(taskStart.getTime(), windowStart.getTime())
+    const visibleEnd = Math.min(taskEnd.getTime(), windowEnd.getTime())
+
+    const startOffsetDays = Math.max(0, (visibleStart - windowStart.getTime()) / msPerDay)
+    const durationDays = Math.max(1, (visibleEnd - visibleStart) / msPerDay + 1)
+
+    const leftPercent = Math.min(96, (startOffsetDays / totalDays) * 100)
     const widthPercent = Math.min(100 - leftPercent, Math.max(4, (durationDays / totalDays) * 100))
 
     return {
@@ -50,7 +82,7 @@ export const TimelineView: React.FC = () => {
   return (
     <div className="space-y-4 animate-fadeIn select-none">
       {/* Header Info */}
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#0E1424] border border-slate-800 shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#0E1424] border border-slate-800 shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
             <Clock className="w-4 h-4" />
@@ -58,23 +90,53 @@ export const TimelineView: React.FC = () => {
           <div>
             <h2 className="text-base font-bold text-white tracking-tight">Sprint Timeline & Gantt</h2>
             <p className="text-[11px] text-slate-400">
-              Interactive task durations, milestones, and scheduling horizon
+              Horizon: {timelineDays[0]?.dateStr} to {timelineDays[timelineDays.length - 1]?.dateStr}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-slate-300">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" />
-            <span>In Progress</span>
+        <div className="flex items-center gap-4">
+          {/* Status indicators */}
+          <div className="hidden md:flex items-center gap-3 text-xs text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" />
+              <span>In Progress</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm bg-purple-500" />
+              <span>In Review</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
+              <span>Done</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm bg-purple-500" />
-            <span>In Review</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-            <span>Done</span>
+
+          {/* Time Navigation */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToToday}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+            >
+              Today
+            </button>
+            <div className="flex items-center rounded-lg bg-slate-800 border border-slate-700 overflow-hidden">
+              <button
+                onClick={prevWeek}
+                title="Previous Week"
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="w-[1px] h-4 bg-slate-700" />
+              <button
+                onClick={nextWeek}
+                title="Next Week"
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -89,12 +151,12 @@ export const TimelineView: React.FC = () => {
             </div>
             <div className="flex-1 flex">
               {timelineDays.map(({ dayNum, dayName, dateStr }, i) => {
-                const isToday = dateStr === '2026-11-22'
+                const isToday = dateStr === todayDateStr
                 return (
                   <div
                     key={i}
                     className={`flex-1 text-center py-2 px-1 border-r border-slate-800/60 ${
-                      isToday ? 'bg-indigo-950/40 text-indigo-300 font-bold' : 'text-slate-400'
+                      isToday ? 'bg-indigo-950/60 text-indigo-300 font-bold' : 'text-slate-400'
                     }`}
                   >
                     <div className="text-[10px] uppercase font-mono">{dayName}</div>
@@ -145,17 +207,23 @@ export const TimelineView: React.FC = () => {
 
                   {/* Gantt Bar Lane */}
                   <div className="flex-1 relative h-12 flex items-center px-1">
-                    <div
-                      className={`absolute h-7 rounded-lg border text-white text-[11px] font-medium flex items-center px-2.5 shadow-md truncate transition-all hover:scale-[1.01] hover:brightness-110 ${statusColor}`}
-                      style={posStyles}
-                    >
-                      <span className="truncate">{task.title}</span>
-                      {totalSubtasks > 0 && (
-                        <span className="ml-2 font-mono text-[9px] opacity-80 shrink-0">
-                          {completedSubtasks}/{totalSubtasks}
-                        </span>
-                      )}
-                    </div>
+                    {posStyles.display === 'none' ? (
+                      <span className="text-[10px] text-slate-600 italic px-3">
+                        Scheduled outside visible window ({task.startDate || task.dueDate} → {task.dueDate})
+                      </span>
+                    ) : (
+                      <div
+                        className={`absolute h-7 rounded-lg border text-white text-[11px] font-medium flex items-center px-2.5 shadow-md truncate transition-all hover:scale-[1.01] hover:brightness-110 ${statusColor}`}
+                        style={posStyles}
+                      >
+                        <span className="truncate">{task.title}</span>
+                        {totalSubtasks > 0 && (
+                          <span className="ml-2 font-mono text-[9px] opacity-80 shrink-0">
+                            {completedSubtasks}/{totalSubtasks}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )

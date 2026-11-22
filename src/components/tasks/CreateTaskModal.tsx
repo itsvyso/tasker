@@ -7,6 +7,7 @@ export const CreateTaskModal: React.FC = () => {
   const {
     isCreateTaskModalOpen,
     setIsCreateTaskModalOpen,
+    createTaskModalDefaults,
     createTask,
     users,
     activeProjectId,
@@ -24,6 +25,19 @@ export const CreateTaskModal: React.FC = () => {
   })
   const [estimatedHours, setEstimatedHours] = useState(8)
   const [tagsInput, setTagsInput] = useState('Frontend, UI/UX')
+
+  const [prevDefaults, setPrevDefaults] = useState(createTaskModalDefaults)
+  if (prevDefaults !== createTaskModalDefaults) {
+    setPrevDefaults(createTaskModalDefaults)
+    if (createTaskModalDefaults?.status) {
+      setStatus(createTaskModalDefaults.status)
+    } else {
+      setStatus('backlog')
+    }
+    if (createTaskModalDefaults?.dueDate) {
+      setDueDate(createTaskModalDefaults.dueDate)
+    }
+  }
 
   if (!isCreateTaskModalOpen) return null
 

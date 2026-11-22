@@ -5,6 +5,8 @@ import { Avatar } from '../common/Avatar'
 import { formatDate, isOverdue } from '../../utils/formatters'
 import {
   ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   CheckCircle2,
   Trash2,
 } from 'lucide-react'
@@ -12,6 +14,7 @@ import {
 export const TableView: React.FC = () => {
   const {
     filteredTasks,
+    activeProjectId,
     setSelectedTaskId,
     updateTask,
     deleteTask,
@@ -22,6 +25,13 @@ export const TableView: React.FC = () => {
   } = useTaskContext()
 
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
+  const [prevProjectId, setPrevProjectId] = useState(activeProjectId)
+
+  // Clear selections when project changes to prevent cross-project batch mutations
+  if (prevProjectId !== activeProjectId) {
+    setPrevProjectId(activeProjectId)
+    setSelectedTaskIds([])
+  }
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -54,6 +64,17 @@ export const TableView: React.FC = () => {
     } else {
       setFilters({ sortBy: column, sortOrder: 'asc' })
     }
+  }
+
+  const renderSortIcon = (column: 'dueDate' | 'priority' | 'title' | 'createdAt') => {
+    if (filters.sortBy !== column) {
+      return <ArrowUpDown className="w-3 h-3 text-slate-500" />
+    }
+    return filters.sortOrder === 'asc' ? (
+      <ArrowUp className="w-3 h-3 text-indigo-400 font-bold" />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-indigo-400 font-bold" />
+    )
   }
 
   return (
@@ -105,8 +126,8 @@ export const TableView: React.FC = () => {
                 className="py-3.5 px-3 cursor-pointer hover:text-slate-100"
               >
                 <div className="flex items-center gap-1.5">
-                  <span>Task Title</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                  <span className={filters.sortBy === 'title' ? 'text-indigo-300 font-bold' : ''}>Task Title</span>
+                  {renderSortIcon('title')}
                 </div>
               </th>
               <th className="py-3.5 px-3 w-36">Status</th>
@@ -115,8 +136,8 @@ export const TableView: React.FC = () => {
                 className="py-3.5 px-3 w-28 cursor-pointer hover:text-slate-100"
               >
                 <div className="flex items-center gap-1.5">
-                  <span>Priority</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                  <span className={filters.sortBy === 'priority' ? 'text-indigo-300 font-bold' : ''}>Priority</span>
+                  {renderSortIcon('priority')}
                 </div>
               </th>
               <th className="py-3.5 px-3 w-36">Assignee</th>
@@ -125,8 +146,8 @@ export const TableView: React.FC = () => {
                 className="py-3.5 px-3 w-32 cursor-pointer hover:text-slate-100"
               >
                 <div className="flex items-center gap-1.5">
-                  <span>Due Date</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                  <span className={filters.sortBy === 'dueDate' ? 'text-indigo-300 font-bold' : ''}>Due Date</span>
+                  {renderSortIcon('dueDate')}
                 </div>
               </th>
               <th className="py-3.5 px-3 w-24 text-right">Hours</th>

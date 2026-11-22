@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useTaskContext } from '../../context/TaskContext'
 import { Avatar } from '../common/Avatar'
 import {
@@ -8,6 +8,7 @@ import {
   ChevronDown,
   X,
   Clock,
+  FolderPlus,
 } from 'lucide-react'
 
 export const TopNavbar: React.FC = () => {
@@ -18,10 +19,13 @@ export const TopNavbar: React.FC = () => {
     currentUser,
     isSidebarCollapsed,
     setIsCommandPaletteOpen,
+    setIsCreateProjectModalOpen,
+    setSelectedTaskId,
     filters,
     setFilters,
     resetFilters,
     users,
+    tasks,
     activities,
   } = useTaskContext()
 
@@ -29,16 +33,23 @@ export const TopNavbar: React.FC = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
 
+  const allTags = useMemo(() => {
+    const set = new Set<string>()
+    tasks.forEach((t) => t.tags.forEach((tag) => set.add(tag)))
+    return Array.from(set).sort()
+  }, [tasks])
+
   const hasActiveFilters =
     filters.priority !== 'all' ||
     filters.status !== 'all' ||
     filters.assigneeId !== 'all' ||
+    filters.tag !== 'all' ||
     filters.search !== ''
 
   return (
     <header
-      className={`fixed top-0 right-0 z-20 h-16 bg-[#090D17]/90 backdrop-blur-md border-b border-slate-800/80 flex items-center justify-between px-6 transition-all duration-300 ${
-        isSidebarCollapsed ? 'left-16' : 'left-64'
+      className={`fixed top-0 right-0 z-20 h-16 bg-[#090D17]/90 backdrop-blur-md border-b border-slate-800/80 flex items-center justify-between px-4 sm:px-6 transition-all duration-300 ${
+        isSidebarCollapsed ? 'left-16' : 'left-16 sm:left-64'
       }`}
     >
       {/* Left: Project selector breadcrumb */}
@@ -52,7 +63,7 @@ export const TopNavbar: React.FC = () => {
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: activeProject.color }}
             />
-            <span className="text-sm font-semibold text-slate-100 max-w-[180px] sm:max-w-[260px] truncate">
+            <span className="text-sm font-semibold text-slate-100 max-w-[150px] sm:max-w-[260px] truncate">
               {activeProject.name}
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/50">
@@ -67,10 +78,11 @@ export const TopNavbar: React.FC = () => {
               className="absolute left-0 mt-2 w-64 bg-[#0E1424] border border-slate-700/70 rounded-xl shadow-2xl p-1 z-50 animate-fadeIn"
               onMouseLeave={() => setIsProjectDropdownOpen(false)}
             >
-              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
-                Switch Project
+              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 flex items-center justify-between">
+                <span>Switch Project</span>
+                <span className="text-[10px] font-mono text-slate-400">{projects.length} total</span>
               </div>
-              <div className="py-1">
+              <div className="py-1 max-h-56 overflow-y-auto">
                 {projects.map((proj) => (
                   <button
                     key={proj.id}
@@ -94,6 +106,18 @@ export const TopNavbar: React.FC = () => {
                     <span className="text-[10px] font-mono text-slate-400">{proj.code}</span>
                   </button>
                 ))}
+              </div>
+              <div className="pt-1 border-t border-slate-800">
+                <button
+                  onClick={() => {
+                    setIsProjectDropdownOpen(false)
+                    setIsCreateProjectModalOpen(true)
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-indigo-300 hover:bg-indigo-600/15 rounded-lg transition-colors font-medium"
+                >
+                  <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Create New Project</span>
+                </button>
               </div>
             </div>
           )}
@@ -218,6 +242,25 @@ export const TopNavbar: React.FC = () => {
                     ))}
                   </select>
                 </div>
+
+                {/* Tag */}
+                {allTags.length > 0 && (
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">Tag / Label</label>
+                    <select
+                      value={filters.tag}
+                      onChange={(e) => setFilters({ tag: e.target.value })}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="all">All Tags</option>
+                      {allTags.map((tag) => (
+                        <option key={tag} value={tag}>
+                          #{tag}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -247,8 +290,19 @@ export const TopNavbar: React.FC = () => {
                 </span>
               </div>
               <div className="space-y-2 max-h-72 overflow-y-auto">
-                {activities.slice(0, 6).map((act) => (
-                  <div key={act.id} className="p-2 rounded-lg bg-slate-900/60 text-xs">
+                {activities.slice(0, 8).map((act) => (
+                  <div
+                    key={act.id}
+                    onClick={() => {
+                      if (act.taskId) {
+                        setSelectedTaskId(act.taskId)
+                        setIsNotificationsOpen(false)
+                      }
+                    }}
+                    className={`p-2 rounded-lg bg-slate-900/60 text-xs transition-colors ${
+                      act.taskId ? 'hover:bg-slate-800/80 cursor-pointer' : ''
+                    }`}
+                  >
                     <p className="text-slate-300">
                       <span className="font-medium text-indigo-300">
                         {users.find((u) => u.id === act.userId)?.name || 'Someone'}

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 
 export const ViewNavigationTabs: React.FC = () => {
-  const { activeView, setActiveView, projectTasks, setIsCreateTaskModalOpen } = useTaskContext()
+  const { activeView, setActiveView, projectTasks, openCreateTaskModal } = useTaskContext()
 
   const tabs: { id: ViewMode; label: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'dashboard', label: 'Bento Overview', icon: LayoutGrid },
@@ -59,7 +59,7 @@ export const ViewNavigationTabs: React.FC = () => {
       {/* Quick Add Button */}
       <div className="flex items-center gap-2 self-end sm:self-auto">
         <button
-          onClick={() => setIsCreateTaskModalOpen(true)}
+          onClick={() => openCreateTaskModal()}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold shadow-sm transition-all"
         >
           <Plus className="w-3.5 h-3.5" />

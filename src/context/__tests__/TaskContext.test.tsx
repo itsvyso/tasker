@@ -156,4 +156,87 @@ describe('TaskContext State and Reducer Operations', () => {
       expect(t.projectId).toBe(secondProject.id)
     })
   })
+
+  it('does not log activity when moving a task to its existing status', () => {
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+    const sampleTask = result.current.tasks[0]
+    const initialActivityCount = result.current.activities.length
+
+    act(() => {
+      // Move to same status
+      result.current.moveTaskStatus(sampleTask.id, sampleTask.status)
+    })
+
+    expect(result.current.activities.length).toBe(initialActivityCount)
+  })
+
+  it('increments comment likes with likeComment', () => {
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+    const sampleTask = result.current.tasks[0]
+    const sampleComment = sampleTask.comments[0]
+    const initialLikes = sampleComment.likes
+
+    act(() => {
+      result.current.likeComment(sampleTask.id, sampleComment.id)
+    })
+
+    const updatedTask = result.current.tasks.find((t) => t.id === sampleTask.id)!
+    const updatedComment = updatedTask.comments.find((c) => c.id === sampleComment.id)!
+    expect(updatedComment.likes).toBe(initialLikes + 1)
+  })
+
+  it('deletes an attachment with deleteAttachment', () => {
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+    const sampleTask = result.current.tasks[0]
+    const attToDelete = sampleTask.attachments[0]
+    expect(attToDelete).toBeDefined()
+
+    act(() => {
+      result.current.deleteAttachment(sampleTask.id, attToDelete.id)
+    })
+
+    const updatedTask = result.current.tasks.find((t) => t.id === sampleTask.id)!
+    expect(updatedTask.attachments.find((a) => a.id === attToDelete.id)).toBeUndefined()
+  })
+
+  it('creates and deletes projects properly', () => {
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+    const initialProjectCount = result.current.projects.length
+
+    let newProj: any
+    act(() => {
+      newProj = result.current.createProject({
+        name: 'Quantum Engine',
+        code: 'QTM',
+        description: 'Test quantum computing engine',
+        color: '#6366F1',
+        icon: 'Cpu',
+        memberIds: ['user-1'],
+        category: 'R&D',
+        targetDate: '2027-02-01',
+      })
+    })
+
+    expect(newProj.id).toBeDefined()
+    expect(result.current.projects.length).toBe(initialProjectCount + 1)
+    expect(result.current.activeProjectId).toBe(newProj.id)
+
+    act(() => {
+      result.current.deleteProject(newProj.id)
+    })
+
+    expect(result.current.projects.find((p) => p.id === newProj.id)).toBeUndefined()
+  })
+
+  it('sets createTaskModalDefaults when openCreateTaskModal is called', () => {
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+
+    act(() => {
+      result.current.openCreateTaskModal({ status: 'in_review', dueDate: '2026-12-25' })
+    })
+
+    expect(result.current.isCreateTaskModalOpen).toBe(true)
+    expect(result.current.createTaskModalDefaults?.status).toBe('in_review')
+    expect(result.current.createTaskModalDefaults?.dueDate).toBe('2026-12-25')
+  })
 })

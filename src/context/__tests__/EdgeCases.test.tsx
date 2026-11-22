@@ -117,4 +117,38 @@ describe('Edge Cases and Boundary Conditions', () => {
       expect(info.color).toBeDefined()
     })
   })
+
+  it('safely recovers from malformed and non-array localStorage data', () => {
+    localStorage.setItem('taske_tasks_v1', 'null')
+    localStorage.setItem('taske_projects_v1', '{"not": "an array"}')
+    localStorage.setItem('taske_activities_v1', '"a string"')
+    localStorage.setItem('taske_chat_v1', '12345')
+
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+    expect(result.current.tasks.length).toBeGreaterThan(0)
+    expect(result.current.projects.length).toBeGreaterThan(0)
+    expect(Array.isArray(result.current.activities)).toBe(true)
+    expect(Array.isArray(result.current.chatMessages)).toBe(true)
+  })
+
+  it('accurately filters tasks by tag and status', () => {
+    const { result } = renderHook(() => useTaskContext(), { wrapper })
+
+    act(() => {
+      result.current.setFilters({ tag: 'UI/UX' })
+    })
+
+    result.current.filteredTasks.forEach((t) => {
+      expect(t.tags).toContain('UI/UX')
+    })
+
+    act(() => {
+      result.current.setFilters({ status: 'in_progress' })
+    })
+
+    result.current.filteredTasks.forEach((t) => {
+      expect(t.status).toBe('in_progress')
+      expect(t.tags).toContain('UI/UX')
+    })
+  })
 })
