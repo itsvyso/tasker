@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import type {
   Task,
   Project,
@@ -74,6 +74,7 @@ interface TaskContextType {
   routines: RoutineItem[]
 
   // Cloud & Auth State
+  isAuthLoading: boolean
   syncStatus: SyncStatus
   isCloudEnabled: boolean
   authUser: SupabaseAuthUser | null
@@ -85,6 +86,17 @@ interface TaskContextType {
   signUpWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   syncNow: () => Promise<void>
+
+  // Focus / Pomodoro Timer State shared with Dynamic Island & Bento Grid
+  timerMode: 'work' | 'short_break' | 'long_break'
+  timerSecondsLeft: number
+  isTimerRunning: boolean
+  activeTimerRoutineId: string
+  setTimerMode: (mode: 'work' | 'short_break' | 'long_break') => void
+  toggleTimer: () => void
+  resetTimer: () => void
+  setActiveTimerRoutineId: (id: string) => void
+  setTimerSecondsLeft: React.Dispatch<React.SetStateAction<number>>
 
   // Desktop Auto-Updater
   isDesktop: boolean
@@ -168,15 +180,71 @@ const safeSupabaseCall = (fn: () => PromiseLike<unknown>) => {
 }
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser] = useState<User>(INITIAL_USERS[0])
-  const [users] = useState<User[]>(INITIAL_USERS)
+  const [baseUsers] = useState<User[]>(INITIAL_USERS)
 
   // Cloud & Auth State
   const isCloudEnabled = isSupabaseConfigured()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(isCloudEnabled ? 'connecting' : 'offline')
   const [authUser, setAuthUser] = useState<SupabaseAuthUser | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(
+    () => Boolean(isSupabaseConfigured() && getSupabaseClient())
+  )
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false)
+
+  // Focus / Pomodoro Timer State shared with Dynamic Island & Bento Grid
+  const [timerMode, setTimerModeState] = useState<'work' | 'short_break' | 'long_break'>('work')
+  const [timerSecondsLeft, setTimerSecondsLeft] = useState<number>(25 * 60)
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false)
+  const [activeTimerRoutineId, setActiveTimerRoutineId] = useState<string>('')
+
+  // Authenticated user resolution
+  const currentUser: User = useMemo(() => {
+    if (authUser) {
+      const email = authUser.email || 'user@taske.io'
+      const name =
+        (authUser.user_metadata?.full_name as string | undefined) ||
+        (authUser.user_metadata?.name as string | undefined) ||
+        email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+      return {
+        id: authUser.id,
+        name,
+        email,
+        avatar:
+          (authUser.user_metadata?.avatar_url as string | undefined) ||
+          `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=7c3aed,6366f1,4f46e5`,
+        role: (authUser.user_metadata?.role as string | undefined) || 'Administrator',
+        status: 'online',
+      }
+    }
+    return INITIAL_USERS[0]
+  }, [authUser])
+
+  const users: User[] = useMemo(() => {
+    if (authUser && !baseUsers.some((u) => u.id === authUser.id)) {
+      return [currentUser, ...baseUsers]
+    }
+    return baseUsers
+  }, [authUser, currentUser, baseUsers])
+
+  const setTimerMode = useCallback((newMode: 'work' | 'short_break' | 'long_break') => {
+    const durations = { work: 25 * 60, short_break: 5 * 60, long_break: 15 * 60 }
+    setTimerModeState(newMode)
+    setIsTimerRunning(false)
+    setTimerSecondsLeft(durations[newMode])
+  }, [])
+
+  const toggleTimer = useCallback(() => {
+    const durations = { work: 25 * 60, short_break: 5 * 60, long_break: 15 * 60 }
+    setTimerSecondsLeft((prev) => (prev === 0 ? durations[timerMode] : prev))
+    setIsTimerRunning((prev) => !prev)
+  }, [timerMode])
+
+  const resetTimer = useCallback(() => {
+    const durations = { work: 25 * 60, short_break: 5 * 60, long_break: 15 * 60 }
+    setIsTimerRunning(false)
+    setTimerSecondsLeft(durations[timerMode])
+  }, [timerMode])
 
   // Desktop Auto-Updater
   const isDesktop = isTauriDesktop()
@@ -351,6 +419,19 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [routines])
 
+  // Stable state refs to prevent dependency invalidation and realtime subscription thrashing
+  const projectsRef = useRef(projects)
+  const tasksRef = useRef(tasks)
+  const routinesRef = useRef(routines)
+  const chatMessagesRef = useRef(chatMessages)
+
+  useEffect(() => {
+    projectsRef.current = projects
+    tasksRef.current = tasks
+    routinesRef.current = routines
+    chatMessagesRef.current = chatMessages
+  }, [projects, tasks, routines, chatMessages])
+
   // Remote Supabase initial sync & real-time subscriptions
   const syncNow = useCallback(async () => {
     const client = getSupabaseClient()
@@ -374,16 +455,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const remoteChat = (chatRes.data || []) as DbChatMessageRow[]
 
       // If remote project table is empty, seed local projects and tasks to cloud
-      if (remoteProjects.length === 0 && projects.length > 0) {
-        await client.from('projects').insert(projects.map((p) => mapProjectToDb(p)))
-        if (tasks.length > 0) {
-          await client.from('tasks').insert(tasks.map((t) => mapTaskToDb(t)))
+      if (remoteProjects.length === 0 && projectsRef.current.length > 0) {
+        await client.from('projects').insert(projectsRef.current.map((p) => mapProjectToDb(p)))
+        if (tasksRef.current.length > 0) {
+          await client.from('tasks').insert(tasksRef.current.map((t) => mapTaskToDb(t)))
         }
-        if (routines.length > 0) {
-          await client.from('routines').insert(routines.map((r) => mapRoutineToDb(r)))
+        if (routinesRef.current.length > 0) {
+          await client.from('routines').insert(routinesRef.current.map((r) => mapRoutineToDb(r)))
         }
-        if (chatMessages.length > 0) {
-          await client.from('chat_messages').insert(chatMessages.map((m) => mapChatMessageToDb(m)))
+        if (chatMessagesRef.current.length > 0) {
+          await client.from('chat_messages').insert(chatMessagesRef.current.map((m) => mapChatMessageToDb(m)))
         }
       } else {
         if (remoteProjects.length > 0) {
@@ -422,7 +503,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('[Sync] Failed remote pull/seed:', err)
       setSyncStatus('error')
     }
-  }, [projects, tasks, routines, chatMessages])
+  }, [])
 
   useEffect(() => {
     const client = getSupabaseClient()
@@ -431,18 +512,26 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Check auth session
-    client.auth.getSession().then(({ data: { session } }) => {
-      setAuthUser(session?.user || null)
-    })
+    client.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setAuthUser(session?.user || null)
+        setIsAuthLoading(false)
+        if (session?.user) {
+          void syncNow()
+        }
+      })
+      .catch(() => {
+        setIsAuthLoading(false)
+      })
 
-    const { data: authListener } = client.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = client.auth.onAuthStateChange((event, session) => {
       setAuthUser(session?.user || null)
+      setIsAuthLoading(false)
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+        void syncNow()
+      }
     })
-
-    // Pull initial remote state
-    const syncTimer = setTimeout(() => {
-      void syncNow()
-    }, 0)
 
     // Realtime channel
     const channel = client
@@ -525,7 +614,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
 
     return () => {
-      clearTimeout(syncTimer)
       authListener.subscription.unsubscribe()
       client.removeChannel(channel)
     }
@@ -536,9 +624,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!client) {
       return { error: new Error('Supabase is not configured.') }
     }
-    const { error } = await client.auth.signInWithPassword({ email, password: pass })
-    if (!error) {
-      syncNow()
+    const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password: pass })
+    if (!error && data?.user) {
+      setAuthUser(data.user)
+      void syncNow()
     }
     return { error: error ? new Error(error.message) : null }
   }, [syncNow])
@@ -548,7 +637,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!client) {
       return { error: new Error('Supabase is not configured.') }
     }
-    const { error } = await client.auth.signUp({ email, password: pass })
+    const { error } = await client.auth.signUp({ email: email.trim(), password: pass })
     return { error: error ? new Error(error.message) : null }
   }, [])
 
@@ -559,6 +648,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setAuthUser(null)
     setSyncStatus('offline')
+    setIsTimerRunning(false)
+    setSelectedTaskId(null)
   }, [])
 
   const setActiveProjectId = useCallback((id: string) => {
@@ -1157,6 +1248,36 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSelectedTaskId(null)
   }, [])
 
+  // Focus Countdown timer interval - active only while isTimerRunning is true and timerSecondsLeft > 0
+  useEffect(() => {
+    if (!isTimerRunning || timerSecondsLeft <= 0) return
+
+    const interval = setInterval(() => {
+      setTimerSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1))
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [isTimerRunning, timerSecondsLeft])
+
+  // Focus Timer Completion effect: cleanly handles session completion when countdown reaches 0
+  useEffect(() => {
+    if (timerSecondsLeft === 0 && isTimerRunning) {
+      const timeoutId = setTimeout(() => {
+        setIsTimerRunning(false)
+        triggerConfetti()
+
+        if (timerMode === 'work' && activeTimerRoutineId) {
+          const target = routines.find((r) => r.id === activeTimerRoutineId)
+          if (target && !target.completedToday) {
+            toggleRoutineToday(activeTimerRoutineId)
+          }
+        }
+      }, 0)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [timerSecondsLeft, isTimerRunning, timerMode, activeTimerRoutineId, routines, toggleRoutineToday])
+
   // Keyboard shortcut listener: Cmd/Ctrl+K for search, C for create task, 1-7 for view switching
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1230,6 +1351,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     routines,
 
     // Cloud & Auth
+    isAuthLoading,
     syncStatus,
     isCloudEnabled,
     authUser,
@@ -1241,6 +1363,17 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUpWithEmail,
     signOut,
     syncNow,
+
+    // Focus / Pomodoro Timer
+    timerMode,
+    timerSecondsLeft,
+    setTimerSecondsLeft,
+    isTimerRunning,
+    activeTimerRoutineId,
+    setTimerMode,
+    toggleTimer,
+    resetTimer,
+    setActiveTimerRoutineId,
 
     // Desktop Auto-Updater
     isDesktop,

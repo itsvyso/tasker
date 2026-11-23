@@ -18,6 +18,8 @@ import { CreateProjectModal } from './components/tasks/CreateProjectModal'
 import { CommandPalette } from './components/common/CommandPalette'
 import { AuthModal } from './components/modals/AuthModal'
 import { TeamInviteModal } from './components/modals/TeamInviteModal'
+import { LoginScreen } from './components/auth/LoginScreen'
+import { Zap } from 'lucide-react'
 
 const MainContent: React.FC = () => {
   const { activeView, isSidebarCollapsed } = useTaskContext()
@@ -90,10 +92,48 @@ const MainContent: React.FC = () => {
   )
 }
 
+const AppContent: React.FC = () => {
+  const { authUser, isAuthLoading } = useTaskContext()
+
+  if (isAuthLoading) {
+    return (
+      <div
+        data-testid="app-auth-loading"
+        className="min-h-screen bg-[#08080B] flex flex-col items-center justify-center text-slate-200 relative selection:bg-purple-500/30 selection:text-purple-200"
+      >
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-b from-purple-600/20 via-violet-600/10 to-transparent blur-[140px] rounded-full" />
+        </div>
+        <motion.div
+          animate={{
+            scale: [0.95, 1.05, 0.95],
+            opacity: [0.8, 1, 0.8],
+          }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 via-violet-600 to-fuchsia-500 p-0.5 shadow-2xl shadow-purple-600/50 flex items-center justify-center relative z-10"
+        >
+          <div className="w-full h-full bg-[#09090D] rounded-[14px] flex items-center justify-center">
+            <Zap className="w-8 h-8 text-purple-400 fill-purple-400/20 animate-pulse" />
+          </div>
+        </motion.div>
+        <div className="mt-5 text-xs font-mono tracking-widest text-purple-300 uppercase relative z-10">
+          Initializing Secure Workspace...
+        </div>
+      </div>
+    )
+  }
+
+  if (!authUser) {
+    return <LoginScreen />
+  }
+
+  return <MainContent />
+}
+
 export function App() {
   return (
     <TaskProvider>
-      <MainContent />
+      <AppContent />
     </TaskProvider>
   )
 }

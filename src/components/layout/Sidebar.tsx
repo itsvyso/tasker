@@ -13,7 +13,6 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeft,
-  RotateCcw,
   Zap,
   FolderPlus,
   Sparkles,
@@ -37,7 +36,6 @@ export const Sidebar: React.FC = () => {
     tasks,
     filters,
     setFilters,
-    resetToMockData,
   } = useTaskContext()
 
   const [isProjectsOpen, setIsProjectsOpen] = useState(true)
@@ -285,20 +283,6 @@ export const Sidebar: React.FC = () => {
             <Plus className="w-4 h-4 shrink-0" />
             {isExpanded && <span>New Task</span>}
           </button>
-
-          {isExpanded && (
-            <button
-              onClick={() => {
-                resetToMockData()
-                setIsMobileSidebarOpen(false)
-              }}
-              title="Reset to showcase demo data"
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset Demo State</span>
-            </button>
-          )}
         </div>
       </aside>
     </>

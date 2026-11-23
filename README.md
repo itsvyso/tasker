@@ -36,7 +36,7 @@ A project and task management system built with React 19, TypeScript, Vite, and 
    - `⌘K` or `Ctrl+K`: Global Quick Search / Command Palette.
    - `C`: Quick-create task modal dialog.
    - `ESC`: Dismiss any modal or slide-over drawer.
-   - `localStorage` persistence with one-click **"Reset Demo State"** button.
+   - `localStorage` persistence and Supabase Cloud multi-device synchronization.
 
 ## 🌐 Multi-Platform Ecosystem: Cloud, iOS & Desktop
 

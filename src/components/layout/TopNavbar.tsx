@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { useTaskContext } from '../../context/TaskContext'
 import { Avatar } from '../common/Avatar'
+import { DynamicIsland } from './DynamicIsland'
 import {
   Search,
   Bell,
@@ -12,6 +13,7 @@ import {
   Cloud,
   Users as UsersIcon,
   Menu,
+  LogOut,
 } from 'lucide-react'
 
 export const TopNavbar: React.FC = () => {
@@ -36,11 +38,13 @@ export const TopNavbar: React.FC = () => {
     authUser,
     setIsAuthModalOpen,
     setIsTeamModalOpen,
+    signOut,
   } = useTaskContext()
 
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
 
   const allTags = useMemo(() => {
     const set = new Set<string>()
@@ -143,21 +147,19 @@ export const TopNavbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: Command Palette Trigger */}
-      <div className="hidden md:flex items-center max-w-md w-full mx-6">
+      {/* Center: Dynamic Island & Quick Search */}
+      <div className="flex items-center justify-center flex-1 mx-2 sm:mx-6 min-w-0">
+        <DynamicIsland />
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
-          className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 text-xs text-slate-400 transition-all shadow-inner"
+          title="Search Tasks (⌘K)"
+          className="hidden xl:flex items-center gap-2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/10 text-xs text-slate-400 transition-all shadow-sm"
         >
-          <div className="flex items-center gap-2.5">
-            <Search className="w-3.5 h-3.5 text-slate-400" />
-            <span>Search anything in Taske...</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-800 text-slate-400 rounded border border-slate-700">
-              ⌘K
-            </kbd>
-          </div>
+          <Search className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-[11px]">Search...</span>
+          <kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-slate-800/80 text-slate-400 rounded border border-slate-700/60">
+            ⌘K
+          </kbd>
         </button>
       </div>
 
@@ -379,22 +381,98 @@ export const TopNavbar: React.FC = () => {
           )}
         </div>
 
-        {/* User Profile Pill */}
-        <button
-          onClick={() => setIsAuthModalOpen(true)}
-          title="User Profile & Cloud Settings"
-          className="flex items-center gap-2 pl-2 border-l border-slate-800 hover:opacity-80 transition-opacity"
-        >
-          <Avatar user={currentUser} size="sm" showStatus={true} />
-          <div className="hidden lg:flex flex-col text-left">
-            <span className="text-xs font-semibold text-slate-200 leading-tight">
-              {currentUser.name}
-            </span>
-            <span className="text-[10px] text-slate-400 leading-tight">
-              {currentUser.role}
-            </span>
-          </div>
-        </button>
+        {/* User Profile Pill & Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+            title="User Profile & Account Menu"
+            data-testid="navbar-profile-btn"
+            className="flex items-center gap-2 pl-2 border-l border-slate-800 hover:opacity-90 transition-opacity min-h-[40px] cursor-pointer"
+          >
+            <Avatar user={currentUser} size="sm" showStatus={true} />
+            <div className="hidden lg:flex flex-col text-left max-w-[120px]">
+              <span className="text-xs font-semibold text-slate-200 leading-tight truncate">
+                {currentUser.name}
+              </span>
+              <span className="text-[10px] text-slate-400 leading-tight truncate">
+                {currentUser.role}
+              </span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
+          </button>
+
+          {/* User Profile Dropdown Menu */}
+          {isProfileDropdownOpen && (
+            <div
+              data-testid="navbar-profile-dropdown"
+              className="absolute right-0 mt-2 w-72 bg-[#0E0E14] border border-white/[0.12] shadow-2xl shadow-black/80 rounded-2xl p-3 z-50 animate-fadeIn"
+              onMouseLeave={() => setIsProfileDropdownOpen(false)}
+            >
+              {/* User details header */}
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.06] mb-2 flex items-center gap-3">
+                <Avatar user={currentUser} size="md" showStatus={true} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
+                      PRO
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-slate-400 truncate">{currentUser.email}</p>
+                  <p className="text-[10px] text-purple-300 font-medium mt-0.5">{currentUser.role}</p>
+                </div>
+              </div>
+
+              {/* Status Indicator */}
+              <div className="px-3 py-2 text-[11px] text-slate-400 flex items-center justify-between border-b border-white/[0.06] mb-1">
+                <span>Cloud Status</span>
+                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                  Connected
+                </span>
+              </div>
+
+              {/* Menu Actions */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setIsProfileDropdownOpen(false)
+                    setIsTeamModalOpen(true)
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+                >
+                  <UsersIcon className="w-4 h-4 text-purple-400" />
+                  <span>Team Members & Roles</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsProfileDropdownOpen(false)
+                    setIsAuthModalOpen(true)
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+                >
+                  <Cloud className="w-4 h-4 text-purple-400" />
+                  <span>Cloud & Sync Diagnostics</span>
+                </button>
+
+                <div className="pt-1 mt-1 border-t border-white/[0.06]">
+                  <button
+                    data-testid="navbar-sign-out-btn"
+                    onClick={async () => {
+                      setIsProfileDropdownOpen(false)
+                      await signOut()
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors font-medium cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 text-red-400" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

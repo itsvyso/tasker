@@ -205,10 +205,10 @@ export const AuthModal: React.FC = () => {
                   <button
                     onClick={handleSignOut}
                     disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-xs font-semibold transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Sign Out to Offline Mode</span>
+                    <span>Sign Out of Workspace</span>
                   </button>
                 </div>
               </div>

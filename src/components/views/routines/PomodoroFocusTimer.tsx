@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useTaskContext } from '../../../context/TaskContext'
 import { snappySpring } from '../../../utils/motion'
-import { triggerConfetti } from '../../../utils/confetti'
 import {
   Timer,
   Play,
@@ -22,73 +21,25 @@ const MODE_DURATIONS: Record<PomodoroMode, number> = {
 }
 
 export const PomodoroFocusTimer: React.FC = () => {
-  const { routines, toggleRoutineToday } = useTaskContext()
-
-  const [mode, setMode] = useState<PomodoroMode>('work')
-  const [secondsLeft, setSecondsLeft] = useState<number>(MODE_DURATIONS.work)
-  const [isRunning, setIsRunning] = useState<boolean>(false)
-  const [selectedRoutineId, setSelectedRoutineId] = useState<string>('')
+  const {
+    routines,
+    timerMode: mode,
+    setTimerMode: handleModeChange,
+    timerSecondsLeft: secondsLeft,
+    isTimerRunning: isRunning,
+    toggleTimer: toggleStartPause,
+    resetTimer: handleReset,
+    activeTimerRoutineId,
+    setActiveTimerRoutineId,
+  } = useTaskContext()
 
   // Derived effective routine id with fallback and validation
   const activeRoutineId = useMemo(() => {
-    if (selectedRoutineId && routines.some((r) => r.id === selectedRoutineId)) {
-      return selectedRoutineId
+    if (activeTimerRoutineId && routines.some((r) => r.id === activeTimerRoutineId)) {
+      return activeTimerRoutineId
     }
     return routines.length > 0 ? routines[0].id : ''
-  }, [selectedRoutineId, routines])
-
-  // Countdown timer interval - active only while isRunning is true and secondsLeft > 0
-  useEffect(() => {
-    if (!isRunning || secondsLeft <= 0) return
-
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [isRunning, secondsLeft])
-
-  // Completion effect: cleanly handles session completion when countdown reaches 0
-  useEffect(() => {
-    if (secondsLeft === 0 && isRunning) {
-      const timeoutId = setTimeout(() => {
-        setIsRunning(false)
-        triggerConfetti()
-
-        if (mode === 'work' && activeRoutineId) {
-          const target = routines.find((r) => r.id === activeRoutineId)
-          if (target && !target.completedToday) {
-            toggleRoutineToday(activeRoutineId)
-          }
-        }
-      }, 0)
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [secondsLeft, isRunning, mode, activeRoutineId, routines, toggleRoutineToday])
-
-  const handleModeChange = (newMode: PomodoroMode) => {
-    setMode(newMode)
-    setIsRunning(false)
-    setSecondsLeft(MODE_DURATIONS[newMode])
-  }
-
-  const handleReset = () => {
-    setIsRunning(false)
-    setSecondsLeft(MODE_DURATIONS[mode])
-  }
-
-  const toggleStartPause = () => {
-    if (secondsLeft === 0) {
-      setSecondsLeft(MODE_DURATIONS[mode])
-    }
-    setIsRunning(!isRunning)
-  }
+  }, [activeTimerRoutineId, routines])
 
   // Format MM:SS
   const minutes = Math.floor(secondsLeft / 60)
@@ -180,7 +131,7 @@ export const PomodoroFocusTimer: React.FC = () => {
         {routines.length > 0 ? (
           <select
             value={activeRoutineId}
-            onChange={(e) => setSelectedRoutineId(e.target.value)}
+            onChange={(e) => setActiveTimerRoutineId(e.target.value)}
             disabled={mode !== 'work'}
             className="flex-1 max-w-[240px] px-2.5 py-1 text-xs rounded-lg bg-slate-900 border border-white/10 text-purple-200 focus:outline-none focus:border-purple-400 truncate disabled:opacity-40"
           >
