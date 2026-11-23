@@ -40,8 +40,12 @@ export const TaskDetailDrawer: React.FC = () => {
     addAttachment,
     deleteAttachment,
     users,
+    currentUser,
+    activeProjectMembers,
     projects,
   } = useTaskContext()
+
+  const availableAssignees = activeProjectMembers.length > 0 ? activeProjectMembers : (currentUser ? [currentUser] : users)
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [newCommentText, setNewCommentText] = useState('')
@@ -270,7 +274,8 @@ export const TaskDetailDrawer: React.FC = () => {
                           onChange={(e) => updateTask(selectedTask.id, { assigneeId: e.target.value })}
                           className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         >
-                          {users.map((u) => (
+                          <option value="">Unassigned</option>
+                          {availableAssignees.map((u) => (
                             <option key={u.id} value={u.id}>
                               {u.name} ({u.role})
                             </option>

@@ -1,16 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import type {
-  Task,
-  Project,
-  User,
-  Activity,
-  ChatMessage,
-  ViewMode,
-  FilterOptions,
-  Status,
-  Subtask,
-  Attachment,
-  RoutineItem,
+import {
+  EMPTY_PROJECT,
+  type Task,
+  type Project,
+  type User,
+  type Activity,
+  type ChatMessage,
+  type ViewMode,
+  type FilterOptions,
+  type Status,
+  type Subtask,
+  type Attachment,
+  type RoutineItem,
 } from '../types'
 import {
   INITIAL_TASKS,
@@ -147,7 +148,18 @@ interface TaskContextType {
   deleteRoutine: (routineId: string) => void
   resetRoutinesToDefault: () => void
   resetToMockData: () => void
+  clearAllData: () => void
+
+  // Team & Project Members Management
+  activeProjectMembers: User[]
+  addTeamMember: (data: { name?: string; email: string; role?: string }) => User
+  removeTeamMember: (userId: string) => void
+  updateProjectMembers: (projectId: string, memberIds: string[]) => void
+  toggleProjectMember: (projectId: string, userId: string) => void
 }
+
+// oxlint-disable-next-line react/only-export-components
+export { EMPTY_PROJECT } from '../types'
 
 const defaultFilters: FilterOptions = {
   search: '',
@@ -169,6 +181,7 @@ const STORAGE_KEYS = {
   ACTIVITIES: 'taske_activities_v1',
   CHAT: 'taske_chat_v1',
   ROUTINES: 'taske_routines_v1',
+  TEAM_MEMBERS: 'taske_team_members_v1',
 }
 
 const safeSupabaseCall = (fn: () => PromiseLike<unknown>) => {
@@ -180,7 +193,19 @@ const safeSupabaseCall = (fn: () => PromiseLike<unknown>) => {
 }
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [baseUsers] = useState<User[]>(INITIAL_USERS)
+  // Custom team members state
+  const [customTeamMembers, setCustomTeamMembers] = useState<User[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.TEAM_MEMBERS)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) return parsed
+      }
+      return []
+    } catch {
+      return []
+    }
+  })
 
   // Cloud & Auth State
   const isCloudEnabled = isSupabaseConfigured()
@@ -217,15 +242,31 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: 'online',
       }
     }
+    if (isCloudEnabled) {
+      return {
+        id: 'user-admin',
+        name: 'Workspace Admin',
+        email: 'admin@taske.io',
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=7c3aed,6366f1,4f46e5`,
+        role: 'Administrator',
+        status: 'online',
+      }
+    }
     return INITIAL_USERS[0]
-  }, [authUser])
+  }, [authUser, isCloudEnabled])
 
   const users: User[] = useMemo(() => {
-    if (authUser && !baseUsers.some((u) => u.id === authUser.id)) {
-      return [currentUser, ...baseUsers]
+    if (isCloudEnabled || Boolean(authUser)) {
+      // In cloud mode: ONLY real authenticated user + real custom team members! ZERO fake mock users!
+      const baseList = [currentUser]
+      const additional = customTeamMembers.filter((m) => m.id !== currentUser.id && m.email !== currentUser.email)
+      return [...baseList, ...additional]
     }
-    return baseUsers
-  }, [authUser, currentUser, baseUsers])
+    // In offline demo mode: INITIAL_USERS + any custom members
+    const existingIds = new Set(INITIAL_USERS.map((u) => u.id))
+    const additional = customTeamMembers.filter((m) => !existingIds.has(m.id))
+    return [...INITIAL_USERS, ...additional]
+  }, [isCloudEnabled, authUser, currentUser, customTeamMembers])
 
   const setTimerMode = useCallback((newMode: 'work' | 'short_break' | 'long_break') => {
     const durations = { work: 25 * 60, short_break: 5 * 60, long_break: 15 * 60 }
@@ -279,11 +320,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS)
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        if (Array.isArray(parsed)) return parsed
       }
-      return INITIAL_PROJECTS
+      return isCloudEnabled ? [] : INITIAL_PROJECTS
     } catch {
-      return INITIAL_PROJECTS
+      return isCloudEnabled ? [] : INITIAL_PROJECTS
     }
   })
 
@@ -292,9 +333,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_PROJECT)
       if (saved && projects.some((p) => p.id === saved)) return saved
-      return projects[0]?.id || 'proj-1'
+      return projects[0]?.id || ''
     } catch {
-      return 'proj-1'
+      return projects[0]?.id || ''
     }
   })
 
@@ -304,11 +345,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const saved = localStorage.getItem(STORAGE_KEYS.TASKS)
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        if (Array.isArray(parsed)) return parsed
       }
-      return INITIAL_TASKS
+      return isCloudEnabled ? [] : INITIAL_TASKS
     } catch {
-      return INITIAL_TASKS
+      return isCloudEnabled ? [] : INITIAL_TASKS
     }
   })
 
@@ -330,9 +371,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed = JSON.parse(saved)
         if (Array.isArray(parsed)) return parsed
       }
-      return INITIAL_ACTIVITIES
+      return isCloudEnabled ? [] : INITIAL_ACTIVITIES
     } catch {
-      return INITIAL_ACTIVITIES
+      return isCloudEnabled ? [] : INITIAL_ACTIVITIES
     }
   })
 
@@ -344,9 +385,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed = JSON.parse(saved)
         if (Array.isArray(parsed)) return parsed
       }
-      return INITIAL_CHAT_MESSAGES
+      return isCloudEnabled ? [] : INITIAL_CHAT_MESSAGES
     } catch {
-      return INITIAL_CHAT_MESSAGES
+      return isCloudEnabled ? [] : INITIAL_CHAT_MESSAGES
     }
   })
 
@@ -358,9 +399,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed = JSON.parse(saved)
         if (Array.isArray(parsed)) return parsed
       }
-      return INITIAL_ROUTINES
+      return isCloudEnabled ? [] : INITIAL_ROUTINES
     } catch {
-      return INITIAL_ROUTINES
+      return isCloudEnabled ? [] : INITIAL_ROUTINES
     }
   })
 
@@ -454,48 +495,50 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const remoteRoutines = (routinesRes.data || []) as DbRoutineRow[]
       const remoteChat = (chatRes.data || []) as DbChatMessageRow[]
 
-      // If remote project table is empty, seed local projects and tasks to cloud
-      if (remoteProjects.length === 0 && projectsRef.current.length > 0) {
-        await client.from('projects').insert(projectsRef.current.map((p) => mapProjectToDb(p)))
-        if (tasksRef.current.length > 0) {
-          await client.from('tasks').insert(tasksRef.current.map((t) => mapTaskToDb(t)))
-        }
-        if (routinesRef.current.length > 0) {
-          await client.from('routines').insert(routinesRef.current.map((r) => mapRoutineToDb(r)))
-        }
-        if (chatMessagesRef.current.length > 0) {
-          await client.from('chat_messages').insert(chatMessagesRef.current.map((m) => mapChatMessageToDb(m)))
-        }
-      } else {
-        if (remoteProjects.length > 0) {
-          const mappedProjects = remoteProjects.map(mapProjectFromDb)
-          setProjects(mappedProjects)
+      // Cloud database is authoritative - NEVER auto-seed fake mock data!
+      const mappedProjects = remoteProjects.map(mapProjectFromDb)
+      setProjects(mappedProjects)
+      try {
+        localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(mappedProjects))
+      } catch {
+        // ignore
+      }
 
-          setActiveProjectIdState((curr) => {
-            if (!mappedProjects.some((p) => p.id === curr)) {
-              const fallback = mappedProjects[0].id
-              try {
-                localStorage.setItem(STORAGE_KEYS.ACTIVE_PROJECT, fallback)
-              } catch {
-                // ignore
-              }
-              return fallback
-            }
-            return curr
-          })
+      setActiveProjectIdState((curr) => {
+        if (!mappedProjects.some((p) => p.id === curr)) {
+          const fallback = mappedProjects[0]?.id || ''
+          try {
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_PROJECT, fallback)
+          } catch {
+            // ignore
+          }
+          return fallback
         }
+        return curr
+      })
 
-        if (remoteTasks.length > 0) {
-          setTasks(remoteTasks.map(mapTaskFromDb))
-        }
+      const mappedTasks = remoteTasks.map(mapTaskFromDb)
+      setTasks(mappedTasks)
+      try {
+        localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(mappedTasks))
+      } catch {
+        // ignore
+      }
 
-        if (remoteRoutines.length > 0) {
-          setRoutines(remoteRoutines.map(mapRoutineFromDb))
-        }
+      const mappedRoutines = remoteRoutines.map(mapRoutineFromDb)
+      setRoutines(mappedRoutines)
+      try {
+        localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(mappedRoutines))
+      } catch {
+        // ignore
+      }
 
-        if (remoteChat.length > 0) {
-          setChatMessages(remoteChat.map(mapChatMessageFromDb))
-        }
+      const mappedChat = remoteChat.map(mapChatMessageFromDb)
+      setChatMessages(mappedChat)
+      try {
+        localStorage.setItem(STORAGE_KEYS.CHAT, JSON.stringify(mappedChat))
+      } catch {
+        // ignore
       }
 
       setSyncStatus('synced')
@@ -671,12 +714,22 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const activeProject = useMemo(() => {
-    return projects.find((p) => p.id === activeProjectId) || projects[0] || INITIAL_PROJECTS[0]
+    if (projects.length === 0) return EMPTY_PROJECT
+    return projects.find((p) => p.id === activeProjectId) || projects[0] || EMPTY_PROJECT
   }, [projects, activeProjectId])
 
   const projectTasks = useMemo(() => {
-    return tasks.filter((t) => t.projectId === activeProjectId)
-  }, [tasks, activeProjectId])
+    if (!activeProject || !activeProject.id) return []
+    return tasks.filter((t) => t.projectId === activeProject.id)
+  }, [tasks, activeProject])
+
+  const activeProjectMembers = useMemo(() => {
+    if (!activeProject || !activeProject.id) return []
+    if (!activeProject.memberIds || activeProject.memberIds.length === 0) {
+      return []
+    }
+    return users.filter((u) => activeProject.memberIds.includes(u.id))
+  }, [activeProject, users])
 
   const selectedTask = useMemo(() => {
     if (!selectedTaskId) return null
@@ -1118,8 +1171,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [activeProjectId, currentUser.id])
 
   const createProject = useCallback((projectData: Omit<Project, 'id' | 'createdAt'>): Project => {
+    const initialMemberIds = projectData.memberIds && projectData.memberIds.length > 0
+      ? projectData.memberIds
+      : [currentUser.id]
+    const memberIds = initialMemberIds.includes(currentUser.id)
+      ? initialMemberIds
+      : [currentUser.id, ...initialMemberIds]
+
     const newProj: Project = {
       ...projectData,
+      memberIds,
       id: `proj-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
     }
@@ -1133,14 +1194,14 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return newProj
-  }, [logActivity])
+  }, [currentUser.id, logActivity])
 
   const deleteProject = useCallback((projectId: string) => {
     setProjects((prev) => {
       const remaining = prev.filter((p) => p.id !== projectId)
-      if (remaining.length === 0) return INITIAL_PROJECTS
+      if (remaining.length === 0) return isCloudEnabled ? [] : INITIAL_PROJECTS
       if (activeProjectId === projectId) {
-        setActiveProjectIdState(remaining[0].id)
+        setActiveProjectIdState(remaining[0]?.id || '')
       }
       return remaining
     })
@@ -1150,7 +1211,145 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (client) {
       safeSupabaseCall(() => client.from('projects').delete().eq('id', projectId))
     }
-  }, [activeProjectId])
+  }, [activeProjectId, isCloudEnabled])
+
+  const addTeamMember = useCallback((data: { name?: string; email: string; role?: string }): User => {
+    const rawEmail = data.email.trim()
+    const derivedName = rawEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    const name = data.name?.trim() || derivedName
+    const role = data.role?.trim() || 'Member'
+
+    // If member already exists in users roster, return them rather than generating an orphaned ID
+    const existing = users.find((u) => u.email.toLowerCase() === rawEmail.toLowerCase())
+    if (existing) {
+      return existing
+    }
+
+    const newMember: User = {
+      id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name,
+      email: rawEmail,
+      role,
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=7c3aed,6366f1,4f46e5`,
+      status: 'online',
+    }
+
+    setCustomTeamMembers((prev) => {
+      const exists = prev.some((u) => u.email.toLowerCase() === rawEmail.toLowerCase())
+      if (exists) return prev
+      const updated = [...prev, newMember]
+      try {
+        localStorage.setItem(STORAGE_KEYS.TEAM_MEMBERS, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+      return updated
+    })
+
+    logActivity('invited team member', newMember.name)
+    return newMember
+  }, [users, logActivity])
+
+  const removeTeamMember = useCallback((userId: string) => {
+    setCustomTeamMembers((prev) => {
+      const updated = prev.filter((u) => u.id !== userId)
+      try {
+        localStorage.setItem(STORAGE_KEYS.TEAM_MEMBERS, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+      return updated
+    })
+
+    setProjects((prev) => {
+      const client = getSupabaseClient()
+      const updated = prev.map((p) => {
+        if (!p.memberIds.includes(userId)) return p
+        const newMemberIds = p.memberIds.filter((id) => id !== userId)
+        if (client) {
+          safeSupabaseCall(() =>
+            client.from('projects').update({ member_ids: newMemberIds }).eq('id', p.id)
+          )
+        }
+        return { ...p, memberIds: newMemberIds }
+      })
+      try {
+        localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+      return updated
+    })
+  }, [])
+
+  const updateProjectMembers = useCallback((projectId: string, memberIds: string[]) => {
+    setProjects((prev) => {
+      const updated = prev.map((p) => (p.id === projectId ? { ...p, memberIds } : p))
+      try {
+        localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+      return updated
+    })
+
+    const client = getSupabaseClient()
+    if (client) {
+      safeSupabaseCall(() =>
+        client.from('projects').update({ member_ids: memberIds }).eq('id', projectId)
+      )
+    }
+  }, [])
+
+  const toggleProjectMember = useCallback((projectId: string, userId: string) => {
+    setProjects((prev) => {
+      const proj = prev.find((p) => p.id === projectId)
+      if (!proj) return prev
+      const exists = proj.memberIds.includes(userId)
+      const newMemberIds = exists
+        ? proj.memberIds.filter((id) => id !== userId)
+        : [...proj.memberIds, userId]
+
+      const updated = prev.map((p) => (p.id === projectId ? { ...p, memberIds: newMemberIds } : p))
+      try {
+        localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+
+      const client = getSupabaseClient()
+      if (client) {
+        safeSupabaseCall(() =>
+          client.from('projects').update({ member_ids: newMemberIds }).eq('id', projectId)
+        )
+      }
+
+      return updated
+    })
+  }, [])
+
+  const clearAllData = useCallback(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify([]))
+      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify([]))
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_PROJECT)
+      localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify([]))
+      localStorage.setItem(STORAGE_KEYS.CHAT, JSON.stringify([]))
+      localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify([]))
+      localStorage.setItem(STORAGE_KEYS.TEAM_MEMBERS, JSON.stringify([]))
+    } catch {
+      // ignore
+    }
+    setTasks([])
+    setProjects([])
+    setActiveProjectIdState('')
+    setActivities([])
+    setChatMessages([])
+    setRoutines([])
+    setCustomTeamMembers([])
+    setFiltersState(defaultFilters)
+    setSelectedTaskId(null)
+  }, [])
 
   const toggleRoutineToday = useCallback((routineId: string) => {
     let updatedRoutine: RoutineItem | null = null
@@ -1416,6 +1615,14 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteRoutine,
     resetRoutinesToDefault,
     resetToMockData,
+    clearAllData,
+
+    // Team & Project Member Management
+    activeProjectMembers,
+    addTeamMember,
+    removeTeamMember,
+    updateProjectMembers,
+    toggleProjectMember,
   }
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>

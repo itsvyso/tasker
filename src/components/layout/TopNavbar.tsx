@@ -19,6 +19,7 @@ import {
 export const TopNavbar: React.FC = () => {
   const {
     activeProject,
+    activeProjectMembers,
     projects,
     setActiveProjectId,
     currentUser,
@@ -144,6 +145,28 @@ export const TopNavbar: React.FC = () => {
               </div>
             </div>
           )}
+          {/* Project Members Avatars & Add Member Quick Action */}
+          {activeProject?.id && (
+            <div className="hidden md:flex items-center gap-1.5 pl-2 border-l border-white/[0.08]">
+              <div className="flex -space-x-1.5 overflow-hidden py-0.5">
+                {activeProjectMembers.slice(0, 3).map((m) => (
+                  <div key={m.id} title={`${m.name} (${m.role})`}>
+                    <Avatar user={m} size="xs" showStatus={false} />
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setIsTeamModalOpen(true)}
+                title="Add or manage members for this project"
+                className="p-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-xs border border-purple-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <UsersIcon className="w-3 h-3 text-purple-400" />
+                <span className="text-[10px] font-semibold">
+                  {activeProjectMembers.length > 0 ? `${activeProjectMembers.length} members` : '+ Add'}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -258,11 +281,14 @@ export const TopNavbar: React.FC = () => {
                     className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-purple-500"
                   >
                     <option value="all">All Team Members</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name}
-                      </option>
-                    ))}
+                    {users.map((u) => {
+                      const isInProject = Boolean(activeProject?.id && activeProject.memberIds?.includes(u.id))
+                      return (
+                        <option key={u.id} value={u.id}>
+                          {u.name} {isInProject ? '• (Project Member)' : ''}
+                        </option>
+                      )
+                    })}
                   </select>
                 </div>
 

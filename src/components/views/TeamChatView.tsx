@@ -3,18 +3,51 @@ import { motion } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import { Avatar } from '../common/Avatar'
 import { snappySpring } from '../../utils/motion'
-import { Send, MessageSquare, Users } from 'lucide-react'
+import { Send, MessageSquare, Users, FolderPlus } from 'lucide-react'
 
 export const TeamChatView: React.FC = () => {
-  const { chatMessages, sendChatMessage, users, currentUser, activeProject, activeProjectId } = useTaskContext()
+  const {
+    chatMessages,
+    sendChatMessage,
+    users,
+    currentUser,
+    activeProject,
+    activeProjectId,
+    activeProjectMembers,
+    projects,
+    setIsCreateProjectModalOpen,
+  } = useTaskContext()
   const [inputText, setInputText] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const projectMembers = activeProjectMembers.length > 0 ? activeProjectMembers : (currentUser ? [currentUser] : users)
 
   const projectMessages = chatMessages.filter((m) => m.projectId === activeProjectId)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' })
   }, [projectMessages])
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] py-16 px-4 text-center max-w-md mx-auto select-none">
+        <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center mb-4 text-purple-400">
+          <FolderPlus className="w-7 h-7" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">No Projects Yet</h3>
+        <p className="text-xs text-slate-400 mb-6">
+          Create your first project to communicate in project chat channels.
+        </p>
+        <button
+          onClick={() => setIsCreateProjectModalOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <FolderPlus className="w-4 h-4" />
+          <span>Create your first project</span>
+        </button>
+      </div>
+    )
+  }
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +83,7 @@ export const TeamChatView: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {users.filter((u) => u.status === 'online').length} online
+              {projectMembers.filter((u) => u.status === 'online').length} online
             </span>
           </div>
         </div>
@@ -154,11 +187,11 @@ export const TeamChatView: React.FC = () => {
       <div className="hidden lg:flex w-64 flex-col bg-[#0E0E14] border border-slate-800 rounded-2xl p-4 shadow-xl">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-800 mb-3">
           <Users className="w-4 h-4 text-purple-400" />
-          <h4 className="text-xs font-bold text-slate-100">Project Members ({users.length})</h4>
+          <h4 className="text-xs font-bold text-slate-100">Project Members ({projectMembers.length})</h4>
         </div>
 
         <div className="space-y-3 overflow-y-auto flex-1">
-          {users.map((u) => (
+          {projectMembers.map((u) => (
             <div
               key={u.id}
               className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800/40 transition-colors"

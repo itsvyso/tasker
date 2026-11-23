@@ -23,6 +23,7 @@ export const Sidebar: React.FC = () => {
   const {
     projects,
     activeProjectId,
+    activeProject,
     setActiveProjectId,
     activeView,
     setActiveView,
@@ -33,6 +34,7 @@ export const Sidebar: React.FC = () => {
     toggleSidebar,
     openCreateTaskModal,
     setIsCreateProjectModalOpen,
+    setIsTeamModalOpen,
     tasks,
     filters,
     setFilters,
@@ -191,33 +193,49 @@ export const Sidebar: React.FC = () => {
 
             {(isExpanded && isProjectsOpen) && (
               <div className="space-y-1">
-                {projects.map((proj) => {
-                  const isActive = proj.id === activeProjectId
-                  const projectTaskCount = tasks.filter((t) => t.projectId === proj.id).length
-
-                  return (
+                {projects.length === 0 ? (
+                  <div className="p-3 text-center rounded-xl bg-purple-950/20 border border-purple-500/20">
+                    <p className="text-[11px] text-slate-400 mb-2 font-medium">No projects yet</p>
                     <button
-                      key={proj.id}
-                      onClick={() => handleSelectProject(proj.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                        isActive
-                          ? 'bg-slate-800/90 text-white border border-slate-700/80 shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                      }`}
+                      onClick={() => {
+                        setIsCreateProjectModalOpen(true)
+                        setIsMobileSidebarOpen(false)
+                      }}
+                      className="w-full py-1.5 px-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
-                          style={{ backgroundColor: proj.color }}
-                        />
-                        <span className="truncate">{proj.name}</span>
-                      </div>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700/50">
-                        {projectTaskCount}
-                      </span>
+                      <FolderPlus className="w-3.5 h-3.5" />
+                      <span>Create Project</span>
                     </button>
-                  )
-                })}
+                  </div>
+                ) : (
+                  projects.map((proj) => {
+                    const isActive = proj.id === activeProjectId
+                    const projectTaskCount = tasks.filter((t) => t.projectId === proj.id).length
+
+                    return (
+                      <button
+                        key={proj.id}
+                        onClick={() => handleSelectProject(proj.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          isActive
+                            ? 'bg-slate-800/90 text-white border border-slate-700/80 shadow-sm'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                            style={{ backgroundColor: proj.color }}
+                          />
+                          <span className="truncate">{proj.name}</span>
+                        </div>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700/50">
+                          {projectTaskCount}
+                        </span>
+                      </button>
+                    )
+                  })
+                )}
               </div>
             )}
           </div>
@@ -229,18 +247,32 @@ export const Sidebar: React.FC = () => {
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Active Team ({users.length})
                 </span>
-                {filters.assigneeId !== 'all' && (
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => setFilters({ assigneeId: 'all' })}
-                    className="text-[10px] text-purple-400 hover:underline"
+                    onClick={() => {
+                      setIsTeamModalOpen(true)
+                      setIsMobileSidebarOpen(false)
+                    }}
+                    title="Invite & Manage Team"
+                    className="text-[10px] text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1 cursor-pointer"
                   >
-                    Clear filter
+                    <Plus className="w-3 h-3" />
+                    <span>Invite</span>
                   </button>
-                )}
+                  {filters.assigneeId !== 'all' && (
+                    <button
+                      onClick={() => setFilters({ assigneeId: 'all' })}
+                      className="text-[10px] text-slate-400 hover:text-slate-200 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-1 px-1">
                 {users.map((u) => {
                   const isFiltered = filters.assigneeId === u.id
+                  const isInProject = Boolean(activeProject?.id && activeProject.memberIds?.includes(u.id))
                   return (
                     <button
                       key={u.id}
@@ -248,8 +280,8 @@ export const Sidebar: React.FC = () => {
                         setFilters({ assigneeId: isFiltered ? 'all' : u.id })
                         setIsMobileSidebarOpen(false)
                       }}
-                      title={`Click to filter tasks by ${u.name}`}
-                      className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-xs text-left transition-colors ${
+                      title={`Click to filter tasks by ${u.name}${isInProject ? ' (Project Member)' : ''}`}
+                      className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-xs text-left transition-colors cursor-pointer ${
                         isFiltered
                           ? 'bg-purple-600/20 text-purple-200 font-semibold border border-purple-500/30'
                           : 'text-slate-300 hover:bg-slate-800/40'
@@ -257,7 +289,12 @@ export const Sidebar: React.FC = () => {
                     >
                       <Avatar user={u} size="sm" showStatus={true} />
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-slate-200 truncate">{u.name}</p>
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="font-medium text-slate-200 truncate">{u.name}</p>
+                          {isInProject && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title="Assigned to current project" />
+                          )}
+                        </div>
                         <p className="text-[10px] text-slate-400 truncate">{u.role}</p>
                       </div>
                     </button>

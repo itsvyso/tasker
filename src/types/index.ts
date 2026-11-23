@@ -71,6 +71,20 @@ export interface Project {
   createdAt: string
 }
 
+export const EMPTY_PROJECT: Project = {
+  id: '',
+  name: 'No Projects Yet',
+  code: 'PRJ',
+  description: 'Create your first project to begin organizing your workflow.',
+  color: '#8B5CF6',
+  icon: 'Folder',
+  memberIds: [],
+  category: 'General',
+  budget: '',
+  targetDate: '',
+  createdAt: '',
+}
+
 export interface Activity {
   id: string
   projectId: string

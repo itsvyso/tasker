@@ -12,14 +12,18 @@ export const CreateTaskModal: React.FC = () => {
     createTaskModalDefaults,
     createTask,
     users,
+    currentUser,
+    activeProjectMembers,
     activeProjectId,
   } = useTaskContext()
+
+  const availableAssignees = activeProjectMembers.length > 0 ? activeProjectMembers : (currentUser ? [currentUser] : users)
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState<Priority>('medium')
   const [status, setStatus] = useState<Status>('backlog')
-  const [assigneeId, setAssigneeId] = useState(users[0]?.id || '')
+  const [assigneeId, setAssigneeId] = useState(availableAssignees[0]?.id || '')
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() + 5)
@@ -185,7 +189,8 @@ export const CreateTaskModal: React.FC = () => {
                     onChange={(e) => setAssigneeId(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-purple-500"
                   >
-                    {users.map((u) => (
+                    <option value="">Unassigned</option>
+                    {availableAssignees.map((u) => (
                       <option key={u.id} value={u.id}>
                         {u.name}
                       </option>

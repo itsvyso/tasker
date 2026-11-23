@@ -4,13 +4,35 @@ import { useTaskContext } from '../../context/TaskContext'
 import type { Task } from '../../types'
 import { Avatar } from '../common/Avatar'
 import { snappySpring } from '../../utils/motion'
-import { Clock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Clock, ChevronLeft, ChevronRight, FolderPlus } from 'lucide-react'
 
 export const TimelineView: React.FC = () => {
-  const { filteredTasks, setSelectedTaskId, users } = useTaskContext()
+  const { filteredTasks, setSelectedTaskId, users, projects, setIsCreateProjectModalOpen } = useTaskContext()
 
   // Dynamic timeline anchor date
   const [startDate, setStartDate] = useState(() => new Date(2026, 10, 15))
+  const [todayDateStr] = useState(() => new Date().toISOString().split('T')[0])
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] py-16 px-4 text-center max-w-md mx-auto select-none">
+        <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center mb-4 text-purple-400">
+          <FolderPlus className="w-7 h-7" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">No Projects Yet</h3>
+        <p className="text-xs text-slate-400 mb-6">
+          Create your first project to view tasks on the Gantt timeline.
+        </p>
+        <button
+          onClick={() => setIsCreateProjectModalOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <FolderPlus className="w-4 h-4" />
+          <span>Create your first project</span>
+        </button>
+      </div>
+    )
+  }
   const totalDays = 21
   const msPerDay = 1000 * 60 * 60 * 24
 
@@ -30,8 +52,6 @@ export const TimelineView: React.FC = () => {
     // Anchor timeline with today around the first third of the view
     setStartDate(new Date(today.getTime() - 4 * msPerDay))
   }
-
-  const [todayDateStr] = useState(() => new Date().toISOString().split('T')[0])
 
   const timelineDays: { date: Date; dateStr: string; dayNum: number; dayName: string }[] = []
   for (let i = 0; i < totalDays; i++) {

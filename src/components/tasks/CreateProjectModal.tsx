@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTaskContext } from '../../context/TaskContext'
 import { modalBackdropVariants, modalCardVariants } from '../../utils/motion'
-import { X, FolderPlus, Sparkles } from 'lucide-react'
+import { X, FolderPlus, Sparkles, Users, Check } from 'lucide-react'
+import { Avatar } from '../common/Avatar'
 
 const COLOR_OPTIONS = [
   { name: 'Indigo', hex: '#6366F1' },
@@ -18,6 +19,7 @@ export const CreateProjectModal: React.FC = () => {
     isCreateProjectModalOpen,
     setIsCreateProjectModalOpen,
     createProject,
+    currentUser,
     users,
   } = useTaskContext()
 
@@ -32,6 +34,15 @@ export const CreateProjectModal: React.FC = () => {
     d.setDate(d.getDate() + 30)
     return d.toISOString().split('T')[0]
   })
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(() => [currentUser?.id || ''])
+
+  const handleClose = () => {
+    setName('')
+    setCode('')
+    setDescription('')
+    setSelectedMemberIds([currentUser?.id || ''])
+    setIsCreateProjectModalOpen(false)
+  }
 
   const handleNameChange = (val: string) => {
     setName(val)
@@ -46,9 +57,19 @@ export const CreateProjectModal: React.FC = () => {
     }
   }
 
+  const toggleMember = (userId: string) => {
+    setSelectedMemberIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    )
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
+
+    const finalMemberIds = currentUser?.id && !selectedMemberIds.includes(currentUser.id)
+      ? [currentUser.id, ...selectedMemberIds]
+      : selectedMemberIds
 
     createProject({
       name: name.trim(),
@@ -59,13 +80,14 @@ export const CreateProjectModal: React.FC = () => {
       icon: 'Folder',
       budget,
       targetDate,
-      memberIds: users.map((u) => u.id),
+      memberIds: finalMemberIds.length > 0 ? finalMemberIds : (currentUser?.id ? [currentUser.id] : []),
     })
 
     // Reset and close
     setName('')
     setCode('')
     setDescription('')
+    setSelectedMemberIds([currentUser?.id || ''])
     setIsCreateProjectModalOpen(false)
   }
 
@@ -79,7 +101,7 @@ export const CreateProjectModal: React.FC = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            onClick={() => setIsCreateProjectModalOpen(false)}
+            onClick={handleClose}
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           />
           <motion.div
@@ -103,7 +125,7 @@ export const CreateProjectModal: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={() => setIsCreateProjectModalOpen(false)}
+                onClick={handleClose}
                 title="Close modal"
                 aria-label="Close modal"
                 className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800 transition-colors"
@@ -225,11 +247,53 @@ export const CreateProjectModal: React.FC = () => {
             </div>
           </div>
 
+          {/* Team Members Assignment */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-purple-400" />
+                Assign Team Members ({selectedMemberIds.length}/{users.length})
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedMemberIds(
+                    selectedMemberIds.length === users.length ? [] : users.map((u) => u.id)
+                  )
+                }
+                className="text-[10px] text-purple-400 hover:underline cursor-pointer"
+              >
+                {selectedMemberIds.length === users.length ? 'Clear all' : 'Select all'}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-1.5 rounded-xl bg-slate-900 border border-slate-700/80">
+              {users.map((u) => {
+                const isSelected = selectedMemberIds.includes(u.id)
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => toggleMember(u.id)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-purple-600/30 text-purple-200 border border-purple-500/50 shadow-sm'
+                        : 'bg-slate-800/80 text-slate-400 border border-slate-700/50 hover:text-slate-200'
+                    }`}
+                  >
+                    <Avatar user={u} size="xs" showStatus={false} />
+                    <span className="truncate max-w-[120px]">{u.name}</span>
+                    {isSelected && <Check className="w-3 h-3 text-purple-400 shrink-0" />}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Footer Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
             <button
               type="button"
-              onClick={() => setIsCreateProjectModalOpen(false)}
+              onClick={handleClose}
               className="px-4 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors min-h-[44px] font-medium"
             >
               Cancel

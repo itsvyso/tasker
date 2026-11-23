@@ -20,6 +20,7 @@ import {
   Activity,
   Layers,
   Sparkles,
+  FolderPlus,
 } from 'lucide-react'
 
 const dashboardContainerVariants = createStaggerContainer(0.04, 0.02)
@@ -28,15 +29,50 @@ const metricsGridVariants = createStaggerContainer(0.035, 0.01)
 export const DashboardView: React.FC = () => {
   const {
     activeProject,
+    activeProjectMembers,
+    currentUser,
+    projects,
     projectTasks,
     users,
     activities,
     setSelectedTaskId,
     openCreateTaskModal,
+    setIsCreateProjectModalOpen,
+    setIsTeamModalOpen,
     setActiveView,
     moveTaskStatus,
     setFilters,
   } = useTaskContext()
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] py-16 px-4 text-center max-w-lg mx-auto select-none">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600/30 via-violet-600/20 to-indigo-600/10 border border-purple-500/30 flex items-center justify-center mb-5 text-purple-400 shadow-xl shadow-purple-950/40">
+          <FolderPlus className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Create your first project</h2>
+        <p className="text-sm text-slate-400 mb-8 max-w-md">
+          Start by organizing your tasks, assigning team members, and building sprints in a clean, high-performance workspace.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => setIsCreateProjectModalOpen(true)}
+            className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <FolderPlus className="w-4 h-4" />
+            <span>Create your first project</span>
+          </button>
+          <button
+            onClick={() => setIsTeamModalOpen(true)}
+            className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <Users className="w-4 h-4" />
+            <span>Invite team members</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const totalTasks = projectTasks.length
   const completedTasks = projectTasks.filter((t) => t.status === 'done').length
@@ -354,11 +390,13 @@ export const DashboardView: React.FC = () => {
                 <Users className="w-4 h-4 text-cyan-400" />
                 <h3 className="text-sm font-bold text-slate-100">Team Workload</h3>
               </div>
-              <span className="text-[11px] text-slate-400">{users.length} members</span>
+              <span className="text-[11px] text-slate-400">
+                {(activeProjectMembers.length > 0 ? activeProjectMembers : [currentUser]).length} members
+              </span>
             </div>
 
             <div className="space-y-3.5">
-              {users.map((member) => {
+              {(activeProjectMembers.length > 0 ? activeProjectMembers : [currentUser]).map((member) => {
                 const memberTasks = projectTasks.filter(
                   (t) => t.assigneeId === member.id && t.status !== 'done'
                 )
@@ -416,32 +454,38 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="space-y-2.5">
-            {activities.slice(0, 5).map((act) => {
-              const user = users.find((u) => u.id === act.userId)
-              return (
-                <div
-                  key={act.id}
-                  onClick={() => {
-                    if (act.taskId) setSelectedTaskId(act.taskId)
-                  }}
-                  className={`flex items-center justify-between p-2.5 rounded-xl bg-slate-900/40 text-xs border border-slate-800/60 transition-colors ${
-                    act.taskId ? 'cursor-pointer hover:bg-slate-800/60' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Avatar user={user} size="xs" />
-                    <div className="min-w-0 truncate">
-                      <span className="font-semibold text-slate-200">{user?.name || 'Someone'}</span>{' '}
-                      <span className="text-slate-400">{act.action}</span>{' '}
-                      <span className="font-medium text-purple-300 truncate">{act.targetTitle}</span>
+            {activities.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">
+                No recent activity yet. Create a task or invite team members to track progress.
+              </div>
+            ) : (
+              activities.slice(0, 5).map((act) => {
+                const user = users.find((u) => u.id === act.userId)
+                return (
+                  <div
+                    key={act.id}
+                    onClick={() => {
+                      if (act.taskId) setSelectedTaskId(act.taskId)
+                    }}
+                    className={`flex items-center justify-between p-2.5 rounded-xl bg-slate-900/40 text-xs border border-slate-800/60 transition-colors ${
+                      act.taskId ? 'cursor-pointer hover:bg-slate-800/60' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar user={user} size="xs" />
+                      <div className="min-w-0 truncate">
+                        <span className="font-semibold text-slate-200">{user?.name || 'Someone'}</span>{' '}
+                        <span className="text-slate-400">{act.action}</span>{' '}
+                        <span className="font-medium text-purple-300 truncate">{act.targetTitle}</span>
+                      </div>
                     </div>
+                    <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-3">
+                      {act.timestamp}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-3">
-                    {act.timestamp}
-                  </span>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         </div>
 

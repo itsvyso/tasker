@@ -12,6 +12,7 @@ import {
   ArrowDown,
   CheckCircle2,
   Trash2,
+  FolderPlus,
 } from 'lucide-react'
 
 const tableBodyVariants = createStaggerContainer(0.035, 0.01)
@@ -20,6 +21,8 @@ export const TableView: React.FC = () => {
   const {
     filteredTasks,
     activeProjectId,
+    projects,
+    setIsCreateProjectModalOpen,
     setSelectedTaskId,
     updateTask,
     deleteTask,
@@ -31,6 +34,27 @@ export const TableView: React.FC = () => {
 
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
   const [prevProjectId, setPrevProjectId] = useState(activeProjectId)
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] py-16 px-4 text-center max-w-md mx-auto select-none">
+        <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center mb-4 text-purple-400">
+          <FolderPlus className="w-7 h-7" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">No Projects Yet</h3>
+        <p className="text-xs text-slate-400 mb-6">
+          Create your first project to organize tasks in dense table view.
+        </p>
+        <button
+          onClick={() => setIsCreateProjectModalOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <FolderPlus className="w-4 h-4" />
+          <span>Create your first project</span>
+        </button>
+      </div>
+    )
+  }
 
   // Clear selections when project changes to prevent cross-project batch mutations
   if (prevProjectId !== activeProjectId) {

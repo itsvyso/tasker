@@ -8,12 +8,35 @@ import {
   Calendar as CalendarIcon,
   Plus,
   Check,
+  FolderPlus,
 } from 'lucide-react'
 
 export const CalendarView: React.FC = () => {
-  const { filteredTasks, setSelectedTaskId, openCreateTaskModal } = useTaskContext()
+  const { filteredTasks, setSelectedTaskId, openCreateTaskModal, projects, setIsCreateProjectModalOpen } = useTaskContext()
 
   const [currentDate, setCurrentDate] = useState(() => new Date(2026, 10, 1))
+  const [todayDateStr] = useState(() => new Date().toISOString().split('T')[0])
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] py-16 px-4 text-center max-w-md mx-auto select-none">
+        <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center mb-4 text-purple-400">
+          <FolderPlus className="w-7 h-7" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">No Projects Yet</h3>
+        <p className="text-xs text-slate-400 mb-6">
+          Create your first project to organize tasks across your sprint calendar.
+        </p>
+        <button
+          onClick={() => setIsCreateProjectModalOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <FolderPlus className="w-4 h-4" />
+          <span>Create your first project</span>
+        </button>
+      </div>
+    )
+  }
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -34,8 +57,6 @@ export const CalendarView: React.FC = () => {
   const goToToday = () => {
     setCurrentDate(new Date())
   }
-
-  const [todayDateStr] = useState(() => new Date().toISOString().split('T')[0])
 
   // Calculate calendar days reliably using Date arithmetic
   const firstDayOfMonth = new Date(year, month, 1)
