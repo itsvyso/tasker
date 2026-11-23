@@ -174,7 +174,7 @@ export const TodayRoutinesTracker: React.FC = () => {
       </AnimatePresence>
 
       {/* Routines Checklist with 7-Day Mini Heatmap */}
-      <div className="relative z-10 space-y-2 max-h-[290px] overflow-y-auto pr-1 flex-1">
+      <div className="relative z-10 space-y-2 max-h-[290px] overflow-y-auto momentum-scroll pr-1 flex-1">
         <AnimatePresence mode="popLayout">
           {routines.map((routine) => {
             const isDone = routine.completedToday
@@ -201,13 +201,14 @@ export const TodayRoutinesTracker: React.FC = () => {
                     variants={checkboxPopVariants}
                     animate={isDone ? 'checked' : 'unchecked'}
                     onClick={() => toggleRoutineToday(routine.id)}
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 ${
+                    aria-label={`Toggle routine: ${routine.title}`}
+                    className={`w-7 h-7 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center transition-all shrink-0 min-w-[28px] min-h-[28px] ${
                       isDone
                         ? 'bg-gradient-to-tr from-purple-600 to-emerald-500 text-white shadow-md shadow-purple-600/40 border border-purple-400/40'
                         : 'bg-slate-900 hover:bg-slate-800 text-transparent border border-white/10 hover:border-purple-400/40'
                     }`}
                   >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check className="w-4 h-4 sm:w-3.5 sm:h-3.5 stroke-[3]" />
                   </motion.button>
 
                   <div className="min-w-0">
@@ -266,11 +267,12 @@ export const TodayRoutinesTracker: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Delete button (visible on hover) */}
+                  {/* Delete button (visible on mobile, hover on desktop) */}
                   <button
                     onClick={() => deleteRoutine(routine.id)}
                     title="Delete routine"
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-400 transition-opacity rounded"
+                    aria-label={`Delete routine ${routine.title}`}
+                    className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-2 text-slate-400 hover:text-rose-400 transition-all rounded-lg min-w-[36px] min-h-[36px] flex items-center justify-center"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

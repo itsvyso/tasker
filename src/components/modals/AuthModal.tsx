@@ -107,7 +107,7 @@ export const AuthModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -124,13 +124,15 @@ export const AuthModal: React.FC = () => {
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
           data-testid="auth-modal"
-          className="relative w-full max-w-md bg-[#0F0F17] border border-white/[0.12] rounded-2xl shadow-2xl overflow-hidden z-10"
+          className="relative w-full max-w-md max-h-[min(90vh,90dvh)] overflow-y-auto momentum-scroll bg-[#0F0F17] border border-white/[0.12] rounded-2xl shadow-2xl z-10"
         >
           {/* Header */}
-          <div className="relative p-6 border-b border-white/[0.08] bg-gradient-to-r from-purple-900/20 via-violet-900/10 to-transparent">
+          <div className="relative p-5 sm:p-6 border-b border-white/[0.08] bg-gradient-to-r from-purple-900/20 via-violet-900/10 to-transparent">
             <button
               onClick={() => setIsAuthModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              title="Close modal"
+              aria-label="Close modal"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
             >
               <X className="w-5 h-5" />
             </button>

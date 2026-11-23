@@ -66,6 +66,9 @@ interface TaskContextType {
   isCreateProjectModalOpen: boolean
   isCommandPaletteOpen: boolean
   isSidebarCollapsed: boolean
+  isMobileSidebarOpen: boolean
+  setIsMobileSidebarOpen: (open: boolean) => void
+  toggleMobileSidebar: () => void
   activities: Activity[]
   chatMessages: ChatMessage[]
   routines: RoutineItem[]
@@ -300,6 +303,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
   const openCreateTaskModal = useCallback((defaults?: { status?: Status; dueDate?: string }) => {
     setCreateTaskModalDefaults(defaults || null)
@@ -647,6 +651,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarCollapsed((prev) => !prev)
+  }, [])
+
+  const toggleMobileSidebar = useCallback(() => {
+    setIsMobileSidebarOpen((prev) => !prev)
   }, [])
 
   const logActivity = useCallback((action: string, targetTitle: string, taskId?: string) => {
@@ -1252,6 +1260,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     openCreateTaskModal,
     setIsCreateProjectModalOpen,
     setIsCommandPaletteOpen,
+    isMobileSidebarOpen,
+    setIsMobileSidebarOpen,
+    toggleMobileSidebar,
     toggleSidebar,
     createTask,
     updateTask,

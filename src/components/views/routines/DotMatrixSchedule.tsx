@@ -149,7 +149,7 @@ export const DotMatrixSchedule: React.FC = () => {
       </div>
 
       {/* Days Timeline Header (2M ... 6F ... 13F) */}
-      <div className="relative z-10 py-3.5 border-b border-white/[0.06] overflow-x-auto">
+      <div className="relative z-10 py-3.5 border-b border-white/[0.06] overflow-x-auto momentum-scroll no-scrollbar">
         <div className="flex items-center gap-2 min-w-max pb-1">
           {TIMELINE_DAYS.map((day, idx) => {
             const isSelected = !showAllDays && selectedDayIndex === idx

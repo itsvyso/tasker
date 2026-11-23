@@ -250,7 +250,7 @@ export const PomodoroFocusTimer: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             transition={snappySpring}
             onClick={toggleStartPause}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${
+            className={`flex items-center justify-center gap-2 px-6 py-2.5 min-h-[44px] rounded-xl text-xs font-bold transition-all shadow-lg ${
               isRunning
                 ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-900/40'
                 : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/40'
@@ -275,7 +275,7 @@ export const PomodoroFocusTimer: React.FC = () => {
             transition={snappySpring}
             onClick={handleReset}
             title="Reset timer"
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition-colors"
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
           </motion.button>

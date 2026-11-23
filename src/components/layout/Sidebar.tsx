@@ -17,6 +17,7 @@ import {
   Zap,
   FolderPlus,
   Sparkles,
+  X,
 } from 'lucide-react'
 
 export const Sidebar: React.FC = () => {
@@ -28,6 +29,8 @@ export const Sidebar: React.FC = () => {
     setActiveView,
     users,
     isSidebarCollapsed,
+    isMobileSidebarOpen,
+    setIsMobileSidebarOpen,
     toggleSidebar,
     openCreateTaskModal,
     setIsCreateProjectModalOpen,
@@ -49,207 +52,256 @@ export const Sidebar: React.FC = () => {
     { id: 'routines', label: 'Routines & Insights', shortcut: '7', icon: Sparkles },
   ]
 
+  const isExpanded = isMobileSidebarOpen || !isSidebarCollapsed
+
+  const handleSelectView = (viewId: ViewMode) => {
+    setActiveView(viewId)
+    setIsMobileSidebarOpen(false)
+  }
+
+  const handleSelectProject = (projectId: string) => {
+    setActiveProjectId(projectId)
+    setIsMobileSidebarOpen(false)
+  }
+
   return (
-    <aside
-      className={`fixed top-0 bottom-0 left-0 z-30 flex flex-col bg-[#09090D] border-r border-white/[0.08] transition-all duration-300 select-none ${
-        isSidebarCollapsed ? 'w-16' : 'w-16 sm:w-64'
-      }`}
-    >
-      {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.08] bg-[#07070A]">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-violet-600 to-fuchsia-500 p-0.5 shadow-lg shadow-purple-600/30 flex items-center justify-center shrink-0">
-            <div className="w-full h-full bg-[#09090D] rounded-[10px] flex items-center justify-center">
-              <Zap className="w-5 h-5 text-purple-400 fill-purple-400/20" />
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          data-testid="sidebar-mobile-backdrop"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden animate-fadeIn"
+        />
+      )}
+
+      <aside
+        className={`fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-[#09090D] border-r border-white/[0.08] transition-all duration-300 select-none pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] ${
+          isMobileSidebarOpen
+            ? 'translate-x-0 w-72 shadow-2xl shadow-purple-950/60'
+            : '-translate-x-full md:translate-x-0'
+        } ${isSidebarCollapsed ? 'md:w-16' : 'md:w-64'}`}
+      >
+        {/* Brand Header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.08] bg-[#07070A]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-violet-600 to-fuchsia-500 p-0.5 shadow-lg shadow-purple-600/30 flex items-center justify-center shrink-0">
+              <div className="w-full h-full bg-[#09090D] rounded-[10px] flex items-center justify-center">
+                <Zap className="w-5 h-5 text-purple-400 fill-purple-400/20" />
+              </div>
             </div>
+            {isExpanded && (
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-base tracking-tight text-white">Taske</span>
+                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold tracking-wider uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    PRO
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium truncate">Next-Gen Workspace</span>
+              </div>
+            )}
           </div>
-          {!isSidebarCollapsed && (
-            <div className="hidden sm:flex flex-col min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base tracking-tight text-white">Taske</span>
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold tracking-wider uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  PRO
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium truncate">Next-Gen Workspace</span>
-            </div>
-          )}
+
+          <div className="flex items-center gap-1">
+            {/* Mobile close button */}
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              title="Close Menu"
+              aria-label="Close Menu"
+              className="md:hidden p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Desktop collapse/expand button */}
+            <button
+              onClick={toggleSidebar}
+              title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              className="hidden md:block p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
+            >
+              {isSidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
-        <button
-          onClick={toggleSidebar}
-          title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          className="hidden sm:block p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
-        >
-          {isSidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* Main Views Navigation */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        <div>
-          {!isSidebarCollapsed && (
-            <div className="hidden sm:block px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Views
-            </div>
-          )}
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = activeView === item.id
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  title={isSidebarCollapsed ? `${item.label} (${item.shortcut})` : undefined}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-purple-600/25 via-violet-600/15 to-transparent text-purple-200 border-l-2 border-purple-500 shadow-sm shadow-purple-950/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-purple-400' : 'text-slate-400'}`} />
-                    {!isSidebarCollapsed && <span className="hidden sm:inline truncate">{item.label}</span>}
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <kbd className="hidden sm:inline text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-800/60 text-slate-400 border border-slate-700/40">
-                      {item.shortcut}
-                    </kbd>
-                  )}
-                </button>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Projects Section */}
-        <div>
-          {!isSidebarCollapsed && (
-            <div className="hidden sm:flex items-center justify-between px-2 mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Projects ({projects.length})
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setIsCreateProjectModalOpen(true)}
-                  title="Create New Project"
-                  className="p-1 text-slate-400 hover:text-purple-300 hover:bg-purple-600/20 rounded transition-colors"
-                >
-                  <FolderPlus className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => setIsProjectsOpen(!isProjectsOpen)}
-                  className="p-1 text-slate-400 hover:text-slate-300"
-                >
-                  <ChevronDown className={`w-3.5 h-3.5 transform transition-transform ${isProjectsOpen ? '' : '-rotate-90'}`} />
-                </button>
+        {/* Main Views Navigation */}
+        <div className="flex-1 overflow-y-auto momentum-scroll px-3 py-4 space-y-6">
+          <div>
+            {isExpanded && (
+              <div className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                Views
               </div>
-            </div>
-          )}
-
-          {(!isSidebarCollapsed && isProjectsOpen) && (
-            <div className="hidden sm:block space-y-1">
-              {projects.map((proj) => {
-                const isActive = proj.id === activeProjectId
-                const projectTaskCount = tasks.filter((t) => t.projectId === proj.id).length
-
+            )}
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = activeView === item.id
                 return (
                   <button
-                    key={proj.id}
-                    onClick={() => setActiveProjectId(proj.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    key={item.id}
+                    onClick={() => handleSelectView(item.id)}
+                    title={!isExpanded ? `${item.label} (${item.shortcut})` : undefined}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-slate-800/90 text-white border border-slate-700/80 shadow-sm'
+                        ? 'bg-gradient-to-r from-purple-600/25 via-violet-600/15 to-transparent text-purple-200 border-l-2 border-purple-500 shadow-sm shadow-purple-950/30'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
-                        style={{ backgroundColor: proj.color }}
-                      />
-                      <span className="truncate">{proj.name}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-purple-400' : 'text-slate-400'}`} />
+                      {isExpanded && <span className="truncate">{item.label}</span>}
                     </div>
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700/50">
-                      {projectTaskCount}
-                    </span>
+                    {isExpanded && (
+                      <kbd className="hidden sm:inline text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-800/60 text-slate-400 border border-slate-700/40">
+                        {item.shortcut}
+                      </kbd>
+                    )}
                   </button>
                 )
               })}
+            </nav>
+          </div>
+
+          {/* Projects Section */}
+          <div>
+            {isExpanded && (
+              <div className="flex items-center justify-between px-2 mb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Projects ({projects.length})
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      setIsCreateProjectModalOpen(true)
+                      setIsMobileSidebarOpen(false)
+                    }}
+                    title="Create New Project"
+                    className="p-1 text-slate-400 hover:text-purple-300 hover:bg-purple-600/20 rounded transition-colors"
+                  >
+                    <FolderPlus className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setIsProjectsOpen(!isProjectsOpen)}
+                    className="p-1 text-slate-400 hover:text-slate-300"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transform transition-transform ${isProjectsOpen ? '' : '-rotate-90'}`} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(isExpanded && isProjectsOpen) && (
+              <div className="space-y-1">
+                {projects.map((proj) => {
+                  const isActive = proj.id === activeProjectId
+                  const projectTaskCount = tasks.filter((t) => t.projectId === proj.id).length
+
+                  return (
+                    <button
+                      key={proj.id}
+                      onClick={() => handleSelectProject(proj.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-slate-800/90 text-white border border-slate-700/80 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                          style={{ backgroundColor: proj.color }}
+                        />
+                        <span className="truncate">{proj.name}</span>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700/50">
+                        {projectTaskCount}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Team Section */}
+          {isExpanded && (
+            <div>
+              <div className="flex items-center justify-between px-2 mb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Active Team ({users.length})
+                </span>
+                {filters.assigneeId !== 'all' && (
+                  <button
+                    onClick={() => setFilters({ assigneeId: 'all' })}
+                    className="text-[10px] text-purple-400 hover:underline"
+                  >
+                    Clear filter
+                  </button>
+                )}
+              </div>
+              <div className="space-y-1 px-1">
+                {users.map((u) => {
+                  const isFiltered = filters.assigneeId === u.id
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => {
+                        setFilters({ assigneeId: isFiltered ? 'all' : u.id })
+                        setIsMobileSidebarOpen(false)
+                      }}
+                      title={`Click to filter tasks by ${u.name}`}
+                      className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-xs text-left transition-colors ${
+                        isFiltered
+                          ? 'bg-purple-600/20 text-purple-200 font-semibold border border-purple-500/30'
+                          : 'text-slate-300 hover:bg-slate-800/40'
+                      }`}
+                    >
+                      <Avatar user={u} size="sm" showStatus={true} />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-slate-200 truncate">{u.name}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{u.role}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Team Section */}
-        {!isSidebarCollapsed && (
-          <div className="hidden sm:block">
-            <div className="flex items-center justify-between px-2 mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Active Team ({users.length})
-              </span>
-              {filters.assigneeId !== 'all' && (
-                <button
-                  onClick={() => setFilters({ assigneeId: 'all' })}
-                  className="text-[10px] text-purple-400 hover:underline"
-                >
-                  Clear filter
-                </button>
-              )}
-            </div>
-            <div className="space-y-1 px-1">
-              {users.map((u) => {
-                const isFiltered = filters.assigneeId === u.id
-                return (
-                  <button
-                    key={u.id}
-                    onClick={() =>
-                      setFilters({ assigneeId: isFiltered ? 'all' : u.id })
-                    }
-                    title={`Click to filter tasks by ${u.name}`}
-                    className={`w-full flex items-center gap-2.5 p-1.5 rounded-lg text-xs text-left transition-colors ${
-                      isFiltered
-                        ? 'bg-purple-600/20 text-purple-200 font-semibold border border-purple-500/30'
-                        : 'text-slate-300 hover:bg-slate-800/40'
-                    }`}
-                  >
-                    <Avatar user={u} size="sm" showStatus={true} />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-200 truncate">{u.name}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{u.role}</p>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Sidebar Footer */}
-      <div className="p-3 border-t border-white/[0.08] bg-[#07070A] space-y-2">
-        <button
-          onClick={() => openCreateTaskModal()}
-          className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-purple-600/30 transition-all ${
-            isSidebarCollapsed ? 'p-2' : ''
-          }`}
-          title="Create New Task (Press 'C')"
-        >
-          <Plus className="w-4 h-4 shrink-0" />
-          {!isSidebarCollapsed && <span className="hidden sm:inline">New Task</span>}
-        </button>
-
-        {!isSidebarCollapsed && (
+        {/* Sidebar Footer */}
+        <div className="p-3 border-t border-white/[0.08] bg-[#07070A] space-y-2">
           <button
-            onClick={resetToMockData}
-            title="Reset to showcase demo data"
-            className="hidden sm:flex w-full items-center justify-center gap-1.5 py-1.5 text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
+            onClick={() => {
+              openCreateTaskModal()
+              setIsMobileSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-purple-600/30 transition-all ${
+              !isExpanded ? 'p-2' : ''
+            }`}
+            title="Create New Task (Press 'C')"
           >
-            <RotateCcw className="w-3 h-3" />
-            <span>Reset Demo State</span>
+            <Plus className="w-4 h-4 shrink-0" />
+            {isExpanded && <span>New Task</span>}
           </button>
-        )}
-      </div>
-    </aside>
+
+          {isExpanded && (
+            <button
+              onClick={() => {
+                resetToMockData()
+                setIsMobileSidebarOpen(false)
+              }}
+              title="Reset to showcase demo data"
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset Demo State</span>
+            </button>
+          )}
+        </div>
+      </aside>
+    </>
   )
 }
+export default Sidebar

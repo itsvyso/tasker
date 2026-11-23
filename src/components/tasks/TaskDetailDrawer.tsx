@@ -125,40 +125,45 @@ export const TaskDetailDrawer: React.FC = () => {
           />
 
           {/* Slide-over Drawer Panel */}
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10 pointer-events-none">
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 pointer-events-none">
             <motion.div
               key="drawer-panel"
               variants={drawerPanelVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-screen max-w-2xl bg-[#0C1120] border-l border-slate-800 text-slate-100 flex flex-col shadow-2xl shadow-black/80 pointer-events-auto"
+              className="w-screen max-w-full sm:max-w-2xl bg-[#0C1120] border-l border-slate-800 text-slate-100 flex flex-col shadow-2xl shadow-black/80 pointer-events-auto pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
             >
+              {/* iOS Mobile Sheet Handle */}
+              <div className="sm:hidden pt-2 pb-1 flex justify-center bg-[#090D17]">
+                <div className="w-10 h-1 rounded-full bg-slate-600/60" />
+              </div>
+
               {/* Header Bar */}
-              <div className="h-16 px-6 border-b border-slate-800 flex items-center justify-between bg-[#090D17]">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              <div className="h-16 px-4 sm:px-6 border-b border-slate-800 flex items-center justify-between bg-[#090D17]">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shrink-0">
                     {selectedTask.taskCode}
                   </span>
-                  <span className="text-xs text-slate-400">in {project?.name}</span>
-                  <span className="text-[11px] font-mono text-purple-300 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/20">
+                  <span className="text-xs text-slate-400 truncate max-w-[120px] sm:max-w-[180px]">in {project?.name}</span>
+                  <span className="text-[11px] font-mono text-purple-300 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-500/20 shrink-0">
                     <AnimatedCounter value={selectedTask.loggedHours} />h /{' '}
                     <AnimatedCounter value={selectedTask.estimatedHours} suffix="h" />
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <button
                     onClick={() => deleteTask(selectedTask.id)}
                     title="Delete Task"
-                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                    className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setSelectedTaskId(null)}
                     title="Close Drawer"
-                    className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -166,10 +171,10 @@ export const TaskDetailDrawer: React.FC = () => {
               </div>
 
               {/* Navigation Tabs */}
-              <div className="flex items-center px-6 border-b border-slate-800 bg-[#0E0E16] gap-6 text-xs font-medium">
+              <div className="flex items-center px-4 sm:px-6 border-b border-slate-800 bg-[#0E0E16] gap-3 sm:gap-6 text-xs font-medium overflow-x-auto momentum-scroll no-scrollbar">
                 <button
                   onClick={() => setActiveTab('details')}
-                  className={`py-3 flex items-center gap-2 border-b-2 transition-colors ${
+                  className={`py-3 flex items-center gap-1.5 sm:gap-2 border-b-2 shrink-0 whitespace-nowrap transition-colors ${
                     activeTab === 'details'
                       ? 'border-purple-500 text-purple-300 font-semibold'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -180,7 +185,7 @@ export const TaskDetailDrawer: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('comments')}
-                  className={`py-3 flex items-center gap-2 border-b-2 transition-colors ${
+                  className={`py-3 flex items-center gap-1.5 sm:gap-2 border-b-2 shrink-0 whitespace-nowrap transition-colors ${
                     activeTab === 'comments'
                       ? 'border-purple-500 text-purple-300 font-semibold'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -191,7 +196,7 @@ export const TaskDetailDrawer: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('attachments')}
-                  className={`py-3 flex items-center gap-2 border-b-2 transition-colors ${
+                  className={`py-3 flex items-center gap-1.5 sm:gap-2 border-b-2 shrink-0 whitespace-nowrap transition-colors ${
                     activeTab === 'attachments'
                       ? 'border-purple-500 text-purple-300 font-semibold'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -208,7 +213,7 @@ export const TaskDetailDrawer: React.FC = () => {
                 variants={drawerAccordionContainer}
                 initial="hidden"
                 animate="visible"
-                className="flex-1 overflow-y-auto p-6 space-y-6"
+                className="flex-1 overflow-y-auto momentum-scroll p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] space-y-6"
               >
                 {activeTab === 'details' && (
                   <>
@@ -226,14 +231,14 @@ export const TaskDetailDrawer: React.FC = () => {
                     </motion.div>
 
                     {/* Primary Properties Grid */}
-                    <motion.div variants={drawerAccordionItem} className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-[#0C0C12] border border-slate-800 text-xs">
+                    <motion.div variants={drawerAccordionItem} className="grid grid-cols-2 gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl bg-[#0C0C12] border border-slate-800 text-xs">
                       {/* Status Picker */}
                       <div>
-                        <label className="text-[11px] text-slate-400 block mb-1.5">Status</label>
+                        <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">Status</label>
                         <select
                           value={selectedTask.status}
                           onChange={(e) => moveTaskStatus(selectedTask.id, e.target.value as Status)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
+                          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         >
                           <option value="backlog">Backlog</option>
                           <option value="in_progress">In Progress</option>
@@ -244,11 +249,11 @@ export const TaskDetailDrawer: React.FC = () => {
 
                       {/* Priority Picker */}
                       <div>
-                        <label className="text-[11px] text-slate-400 block mb-1.5">Priority</label>
+                        <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">Priority</label>
                         <select
                           value={selectedTask.priority}
                           onChange={(e) => updateTask(selectedTask.id, { priority: e.target.value as Priority })}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
+                          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         >
                           <option value="urgent">Urgent</option>
                           <option value="high">High</option>
@@ -259,11 +264,11 @@ export const TaskDetailDrawer: React.FC = () => {
 
                       {/* Assignee Picker */}
                       <div>
-                        <label className="text-[11px] text-slate-400 block mb-1.5">Assignee</label>
+                        <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">Assignee</label>
                         <select
                           value={selectedTask.assigneeId}
                           onChange={(e) => updateTask(selectedTask.id, { assigneeId: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
+                          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         >
                           {users.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -275,20 +280,20 @@ export const TaskDetailDrawer: React.FC = () => {
 
                       {/* Due Date Picker */}
                       <div>
-                        <label className="text-[11px] text-slate-400 block mb-1.5">
+                        <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">
                           Due Date {overdue && <span className="text-rose-400 font-bold">(Overdue)</span>}
                         </label>
                         <input
                           type="date"
                           value={selectedTask.dueDate}
                           onChange={(e) => updateTask(selectedTask.id, { dueDate: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
+                          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         />
                       </div>
 
                       {/* Estimate / Logged hours */}
                       <div>
-                        <label className="text-[11px] text-slate-400 block mb-1.5">Est. Hours</label>
+                        <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">Est. Hours</label>
                         <input
                           type="number"
                           min={0}
@@ -296,12 +301,12 @@ export const TaskDetailDrawer: React.FC = () => {
                           onChange={(e) =>
                             updateTask(selectedTask.id, { estimatedHours: Math.max(0, Number(e.target.value)) })
                           }
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
+                          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[11px] text-slate-400 block mb-1.5">Logged Hours</label>
+                        <label className="text-[11px] text-slate-400 block mb-1.5 font-medium">Logged Hours</label>
                         <input
                           type="number"
                           min={0}
@@ -309,7 +314,7 @@ export const TaskDetailDrawer: React.FC = () => {
                           onChange={(e) =>
                             updateTask(selectedTask.id, { loggedHours: Math.max(0, Number(e.target.value)) })
                           }
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500"
+                          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium focus:outline-none focus:border-purple-500 min-h-[42px]"
                         />
                       </div>
                     </motion.div>
@@ -424,9 +429,11 @@ export const TaskDetailDrawer: React.FC = () => {
                             </label>
                             <button
                               onClick={() => deleteSubtask(selectedTask.id, sub.id)}
-                              className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 p-1 transition-opacity"
+                              title="Delete subtask"
+                              aria-label="Delete subtask"
+                              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-rose-400 p-2 min-w-[36px] min-h-[36px] flex items-center justify-center transition-all rounded-lg"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-4 h-4" />
                             </button>
                           </motion.div>
                         ))}
@@ -439,14 +446,14 @@ export const TaskDetailDrawer: React.FC = () => {
                           value={newSubtaskTitle}
                           onChange={(e) => setNewSubtaskTitle(e.target.value)}
                           placeholder="Add new subtask item..."
-                          className="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                          className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500 min-h-[44px]"
                         />
                         <button
                           type="submit"
                           disabled={!newSubtaskTitle.trim()}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-medium flex items-center gap-1 transition-all"
+                          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold flex items-center gap-1.5 transition-all min-h-[44px]"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-4 h-4" />
                           Add
                         </button>
                       </form>
@@ -570,9 +577,10 @@ export const TaskDetailDrawer: React.FC = () => {
                             <button
                               onClick={() => deleteAttachment(selectedTask.id, att.id)}
                               title="Delete attachment"
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-all ml-2"
+                              aria-label="Delete attachment"
+                              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all ml-2"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </motion.div>
                         ))

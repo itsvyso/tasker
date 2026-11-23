@@ -143,7 +143,7 @@ export const CommandPalette: React.FC = () => {
   return (
     <AnimatePresence>
       {isCommandPaletteOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 select-none">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:pt-20 px-3 sm:px-4 pb-[env(safe-area-inset-bottom,0px)] select-none">
           <motion.div
             key="command-palette-backdrop"
             variants={modalBackdropVariants}
@@ -159,7 +159,7 @@ export const CommandPalette: React.FC = () => {
             animate={{ opacity: 1, scale: 1.0, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: -10, transition: { duration: 0.15 } }}
             transition={snappySpring}
-            className="w-full max-w-xl bg-[#0D0D14] border border-slate-700/60 rounded-xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col relative z-10"
+            className="w-full max-w-xl max-h-[min(36rem,85dvh)] bg-[#0D0D14] border border-slate-700/60 rounded-xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search Input Bar */}
@@ -180,7 +180,9 @@ export const CommandPalette: React.FC = () => {
               {query && (
                 <button
                   onClick={() => setQuery('')}
-                  className="p-1 text-slate-400 hover:text-slate-200 rounded"
+                  title="Clear query"
+                  aria-label="Clear query"
+                  className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -191,7 +193,7 @@ export const CommandPalette: React.FC = () => {
             </div>
 
             {/* Results List */}
-            <div className="max-h-96 overflow-y-auto p-2 divide-y divide-slate-800/30">
+            <div className="max-h-[min(24rem,52dvh)] overflow-y-auto momentum-scroll p-2 divide-y divide-slate-800/30">
               {results.length === 0 ? (
                 <div className="py-12 text-center text-sm text-slate-400">
                   No matching tasks, projects, or commands found.

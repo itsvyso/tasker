@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import type { Task } from '../../types'
+import type { Task, Status } from '../../types'
 import { useTaskContext } from '../../context/TaskContext'
 import { PriorityBadge, TagBadge } from '../common/Badge'
 import { Avatar } from '../common/Avatar'
@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Paperclip,
   CheckCircle2,
+  ChevronRight,
 } from 'lucide-react'
 
 interface TaskCardProps {
@@ -21,7 +22,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging: propIsDragging }) => {
-  const { setSelectedTaskId, users, setFilters, filters } = useTaskContext()
+  const { setSelectedTaskId, users, setFilters, filters, moveTaskStatus } = useTaskContext()
   const [internalDragging, setInternalDragging] = useState(false)
 
   const isDragging = propIsDragging ?? internalDragging
@@ -126,6 +127,26 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging: propIsDrag
         </div>
         <div className="flex items-center gap-1.5">
           <PriorityBadge priority={task.priority} />
+          {!isDone && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                const nextMap: Record<Status, Status> = {
+                  backlog: 'in_progress',
+                  in_progress: 'in_review',
+                  in_review: 'done',
+                  done: 'done',
+                }
+                moveTaskStatus(task.id, nextMap[task.status])
+              }}
+              title="Advance task to next column"
+              aria-label="Advance task to next column"
+              className="sm:hidden p-1 px-1.5 rounded-md bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-[10px] font-semibold flex items-center gap-0.5 active:scale-95 transition-all"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          )}
         </div>
       </div>
 

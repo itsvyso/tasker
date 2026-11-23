@@ -11,6 +11,7 @@ import {
   FolderPlus,
   Cloud,
   Users as UsersIcon,
+  Menu,
 } from 'lucide-react'
 
 export const TopNavbar: React.FC = () => {
@@ -20,6 +21,7 @@ export const TopNavbar: React.FC = () => {
     setActiveProjectId,
     currentUser,
     isSidebarCollapsed,
+    toggleMobileSidebar,
     setIsCommandPaletteOpen,
     setIsCreateProjectModalOpen,
     setSelectedTaskId,
@@ -55,25 +57,35 @@ export const TopNavbar: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 right-0 z-20 h-16 bg-[#08080B]/80 backdrop-blur-xl border-b border-white/[0.08] flex items-center justify-between px-4 sm:px-6 transition-all duration-300 ${
-        isSidebarCollapsed ? 'left-16' : 'left-16 sm:left-64'
+      className={`fixed top-0 right-0 z-20 bg-[#08080B]/85 backdrop-blur-2xl border-b border-white/[0.08] flex items-center justify-between px-3 sm:px-6 transition-all duration-300 pt-[env(safe-area-inset-top,0px)] h-[calc(4rem+env(safe-area-inset-top,0px))] left-0 ${
+        isSidebarCollapsed ? 'md:left-16' : 'md:left-64'
       }`}
     >
-      {/* Left: Project selector breadcrumb */}
-      <div className="flex items-center gap-4">
+      {/* Left: Mobile menu toggle & Project selector */}
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Mobile Hamburger Drawer Trigger */}
+        <button
+          onClick={toggleMobileSidebar}
+          title="Open Navigation Menu"
+          aria-label="Open Navigation Menu"
+          className="md:hidden p-2.5 rounded-xl text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
+        >
+          <Menu className="w-5 h-5 text-purple-400" />
+        </button>
+
         <div className="relative">
           <button
             onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-            className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-colors text-left"
+            className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-colors text-left min-h-[44px]"
           >
             <span
-              className="w-2.5 h-2.5 rounded-full"
+              className="w-2.5 h-2.5 rounded-full shrink-0"
               style={{ backgroundColor: activeProject.color }}
             />
-            <span className="text-sm font-semibold text-slate-100 max-w-[150px] sm:max-w-[260px] truncate">
+            <span className="text-xs sm:text-sm font-semibold text-slate-100 max-w-[90px] xs:max-w-[130px] sm:max-w-[240px] truncate">
               {activeProject.name}
             </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/50">
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/50 hidden xs:inline">
               {activeProject.code}
             </span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -150,18 +162,20 @@ export const TopNavbar: React.FC = () => {
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Filter popover button */}
         <div className="relative">
           <button
             onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            className={`flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-medium border transition-colors min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 ${
               hasActiveFilters
                 ? 'bg-gradient-to-r from-purple-500/20 to-violet-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-950/50'
                 : 'bg-slate-800/50 hover:bg-slate-800 text-slate-300 border-slate-700/60'
             }`}
+            title="Filter Tasks"
+            aria-label="Filter Tasks"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Filter</span>
             {hasActiveFilters && (
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
@@ -171,7 +185,7 @@ export const TopNavbar: React.FC = () => {
           {/* Filter Popover panel */}
           {isFilterDropdownOpen && (
             <div
-              className="absolute right-0 mt-2 w-72 bg-[#0E0E14] border border-white/[0.1] shadow-2xl shadow-black/80 border border-slate-700/70 rounded-xl shadow-2xl p-4 z-50 animate-fadeIn"
+              className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] bg-[#0E0E14] border border-white/[0.1] shadow-2xl shadow-black/80 rounded-xl p-4 z-50 animate-fadeIn"
               onMouseLeave={() => setIsFilterDropdownOpen(false)}
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
@@ -277,10 +291,11 @@ export const TopNavbar: React.FC = () => {
         <button
           onClick={() => setIsAuthModalOpen(true)}
           title="Cloud Sync & Auth Settings"
+          aria-label="Cloud Sync & Auth Settings"
           data-testid="navbar-cloud-btn"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs"
+          className="flex items-center justify-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0"
         >
-          <Cloud className="w-3.5 h-3.5 text-purple-400" />
+          <Cloud className="w-4 h-4 text-purple-400" />
           <span className="hidden sm:inline font-medium">
             {authUser ? authUser.email?.split('@')[0] : syncStatus === 'synced' ? 'Cloud Synced' : isCloudEnabled ? 'Cloud' : 'Offline'}
           </span>
@@ -301,10 +316,11 @@ export const TopNavbar: React.FC = () => {
         <button
           onClick={() => setIsTeamModalOpen(true)}
           title="Manage Team Members"
+          aria-label="Manage Team Members"
           data-testid="navbar-team-btn"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs"
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs min-h-[40px]"
         >
-          <UsersIcon className="w-3.5 h-3.5 text-purple-400" />
+          <UsersIcon className="w-4 h-4 text-purple-400" />
           <span className="hidden md:inline font-medium">Team</span>
         </button>
 
@@ -312,15 +328,17 @@ export const TopNavbar: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-            className="relative p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors"
+            title="Activity Feed & Notifications"
+            aria-label="Activity Feed & Notifications"
+            className="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-[#0A0E1A]" />
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-[#0A0E1A]" />
           </button>
 
           {isNotificationsOpen && (
             <div
-              className="absolute right-0 mt-2 w-80 bg-[#0E0E14] border border-white/[0.1] shadow-2xl shadow-black/80 border border-slate-700/70 rounded-xl shadow-2xl p-3 z-50 animate-fadeIn"
+              className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-[#0E0E14] border border-white/[0.1] shadow-2xl shadow-black/80 rounded-xl p-3 z-50 animate-fadeIn"
               onMouseLeave={() => setIsNotificationsOpen(false)}
             >
               <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">

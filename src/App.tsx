@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TaskProvider, useTaskContext } from './context/TaskContext'
 import { Sidebar } from './components/layout/Sidebar'
 import { TopNavbar } from './components/layout/TopNavbar'
+import { MobileBottomNav } from './components/layout/MobileBottomNav'
 import { ViewNavigationTabs } from './components/common/ViewNavigationTabs'
 import { DashboardView } from './components/views/DashboardView'
 import { KanbanView } from './components/views/KanbanView'
@@ -55,8 +56,8 @@ const MainContent: React.FC = () => {
       <TopNavbar />
 
       <main
-        className={`flex-1 pt-20 px-3 sm:px-6 pb-12 transition-all duration-300 relative z-10 ${
-          isSidebarCollapsed ? 'ml-16' : 'ml-16 sm:ml-64'
+        className={`flex-1 pt-[calc(4.75rem+env(safe-area-inset-top,0px))] px-3 sm:px-6 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-12 transition-all duration-300 relative z-10 ml-0 ${
+          isSidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
         }`}
       >
         <div className="max-w-[1600px] mx-auto">
@@ -74,6 +75,9 @@ const MainContent: React.FC = () => {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Mobile Floating Bottom Navigation Dock */}
+      <MobileBottomNav />
 
       {/* Overlays & Drawers */}
       <TaskDetailDrawer />

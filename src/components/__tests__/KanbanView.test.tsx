@@ -54,4 +54,36 @@ describe('KanbanView Component', () => {
     fireEvent.dragStart(card.closest('div[draggable="true"]')!, { dataTransfer })
     expect(dataTransfer.getData('text/plain')).toBe('task-1')
   })
+
+  it('renders mobile quick-jump lane selector pills and allows lane jumping', () => {
+    render(
+      <TaskProvider>
+        <KanbanView />
+      </TaskProvider>
+    )
+
+    expect(screen.getByText('Backlog Lane')).toBeInTheDocument()
+    expect(screen.getByText('In Progress Lane')).toBeInTheDocument()
+    expect(screen.getByText('In Review Lane')).toBeInTheDocument()
+    expect(screen.getByText('Done Lane')).toBeInTheDocument()
+
+    // Clicking a quick jump pill triggers lane jump
+    const backlogPill = screen.getByText('Backlog Lane').closest('button')!
+    fireEvent.click(backlogPill)
+    expect(backlogPill).toHaveClass('font-bold')
+  })
+
+  it('provides a touch-friendly 1-tap column advance button on mobile task cards', () => {
+    render(
+      <TaskProvider>
+        <KanbanView />
+      </TaskProvider>
+    )
+
+    const advanceBtns = screen.getAllByRole('button', { name: /Advance task to next column/i })
+    expect(advanceBtns.length).toBeGreaterThan(0)
+
+    // Tap advance on first card
+    fireEvent.click(advanceBtns[0])
+  })
 })

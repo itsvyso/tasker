@@ -28,11 +28,11 @@ export const TeamChatView: React.FC = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-140px)] flex gap-4 animate-fadeIn select-none">
+    <div className="h-[calc(100dvh-290px)] sm:h-[calc(100vh-140px)] min-h-[380px] flex gap-4 animate-fadeIn select-none">
       {/* Main Chat Stream */}
       <div className="flex-1 flex flex-col bg-[#0E0E14] border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
         {/* Chat Header */}
-        <div className="px-6 py-4 border-b border-slate-800 bg-[#0D0D12] flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 bg-[#0D0D12] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center">
               <MessageSquare className="w-4 h-4" />
@@ -56,7 +56,7 @@ export const TeamChatView: React.FC = () => {
         </div>
 
         {/* Messages List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto momentum-scroll p-4 sm:p-6 space-y-4">
           {projectMessages.length === 0 ? (
             <div className="py-20 text-center text-xs text-slate-400">
               <MessageSquare className="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-60" />
@@ -107,8 +107,8 @@ export const TeamChatView: React.FC = () => {
         </div>
 
         {/* Quick Reactions Bar */}
-        <div className="px-6 py-2 border-t border-slate-800/60 bg-[#0D0D12] flex items-center gap-2 text-xs">
-          <span className="text-[10px] uppercase font-semibold text-slate-400">Quick React:</span>
+        <div className="px-4 sm:px-6 py-2 border-t border-slate-800/60 bg-[#0D0D12] flex items-center gap-2 text-xs overflow-x-auto momentum-scroll no-scrollbar">
+          <span className="text-[10px] uppercase font-semibold text-slate-400 shrink-0">Quick React:</span>
           {['🚀 Shipped!', '🔥 Looks incredible', '👍 Approved', '🎉 Great sprint', '⚡ Boost'].map(
             (phrase) => (
               <motion.button
@@ -117,7 +117,7 @@ export const TeamChatView: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 transition={snappySpring}
                 onClick={() => handleQuickReaction(phrase)}
-                className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 transition-colors shrink-0 whitespace-nowrap min-h-[32px]"
               >
                 {phrase}
               </motion.button>
@@ -126,22 +126,24 @@ export const TeamChatView: React.FC = () => {
         </div>
 
         {/* Chat Input */}
-        <form onSubmit={handleSend} className="p-4 border-t border-slate-800 bg-[#0A0A0E]">
+        <form onSubmit={handleSend} className="p-3 sm:p-4 border-t border-slate-800 bg-[#0A0A0E]">
           <div className="relative flex items-center">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`Message #${activeProject.code.toLowerCase()}-engineering-sync...`}
-              className="w-full pl-4 pr-24 py-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500 shadow-inner"
+              className="w-full pl-4 pr-16 py-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500 shadow-inner min-h-[44px]"
             />
-            <div className="absolute right-2 flex items-center gap-1.5">
+            <div className="absolute right-1.5 flex items-center">
               <button
                 type="submit"
                 disabled={!inputText.trim()}
-                className="p-2 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 disabled:opacity-40 text-white transition-all shadow shadow-purple-600/30"
+                title="Send Message"
+                aria-label="Send Message"
+                className="p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 disabled:opacity-40 text-white transition-all shadow shadow-purple-600/30"
               >
-                <Send className="w-3.5 h-3.5" />
+                <Send className="w-4 h-4" />
               </button>
             </div>
           </div>

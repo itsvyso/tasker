@@ -31,7 +31,7 @@ export const ViewNavigationTabs: React.FC = () => {
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80 mb-6 select-none">
       {/* Navigation Pills */}
       <LayoutGroup id="viewNavTabs">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0E0E14] border border-white/[0.08] overflow-x-auto max-w-full">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0E0E14] border border-white/[0.08] overflow-x-auto momentum-scroll no-scrollbar max-w-full">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeView === tab.id

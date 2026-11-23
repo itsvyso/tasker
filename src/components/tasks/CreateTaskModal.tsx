@@ -73,7 +73,7 @@ export const CreateTaskModal: React.FC = () => {
   return (
     <AnimatePresence>
       {isCreateTaskModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 select-none pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
           <motion.div
             key="create-task-backdrop"
             variants={modalBackdropVariants}
@@ -89,11 +89,11 @@ export const CreateTaskModal: React.FC = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="w-full max-w-lg bg-[#0E0E16] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10"
+            className="w-full max-w-lg max-h-[min(88vh,88dvh)] bg-[#0E0E16] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#121A2F]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-800 bg-[#121A2F]">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
                   <Sparkles className="w-4 h-4" />
@@ -105,14 +105,16 @@ export const CreateTaskModal: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsCreateTaskModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors"
+                title="Close modal"
+                aria-label="Close modal"
+                className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Form Body */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto momentum-scroll">
               {/* Title */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-300 block mb-1">
@@ -236,13 +238,13 @@ export const CreateTaskModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCreateTaskModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors min-h-[44px] font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium shadow-lg shadow-purple-600/30 border border-purple-400/20 flex items-center gap-1.5 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold shadow-lg shadow-purple-600/30 border border-purple-400/20 flex items-center gap-1.5 transition-all min-h-[44px]"
                 >
                   <Plus className="w-4 h-4" />
                   Create Task

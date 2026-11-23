@@ -118,23 +118,25 @@ export const TimelineView: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={goToToday}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors min-h-[40px]"
             >
               Today
             </button>
-            <div className="flex items-center rounded-lg bg-slate-800 border border-slate-700 overflow-hidden">
+            <div className="flex items-center rounded-xl bg-slate-800 border border-slate-700 overflow-hidden min-h-[40px]">
               <button
                 onClick={prevWeek}
                 title="Previous Week"
-                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                aria-label="Previous Week"
+                className="p-2.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors min-w-[40px] flex items-center justify-center"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <div className="w-[1px] h-4 bg-slate-700" />
+              <div className="w-[1px] h-5 bg-slate-700" />
               <button
                 onClick={nextWeek}
                 title="Next Week"
-                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                aria-label="Next Week"
+                className="p-2.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors min-w-[40px] flex items-center justify-center"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -144,7 +146,7 @@ export const TimelineView: React.FC = () => {
       </div>
 
       {/* Gantt Chart Container */}
-      <div className="rounded-2xl border border-slate-800 bg-[#0E1424] overflow-x-auto shadow-xl">
+      <div className="rounded-2xl border border-slate-800 bg-[#0E1424] overflow-x-auto momentum-scroll shadow-xl">
         <div className="min-w-[900px]">
           {/* Timeline Days Header */}
           <div className="flex border-b border-slate-800 bg-[#0B0F1C] text-xs">
